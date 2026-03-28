@@ -38,7 +38,7 @@ Mods/
 | Linux (Steam/Proton) | `~/.local/share/Steam/steamapps/compatdata/2379780/pfx/drive_c/users/steamuser/AppData/Roaming/Balatro/Mods/` |
 | Linux (Native)       | `~/.config/love/Mods/balatrobot/`                                                                             |
 
-> Steam/Proton launcher not supported yet. Track progress in [#128](https://github.com/coder/balatrobot/issues/128)
+> Linux (Steam/Proton) is supported via the `linux` platform. See the [CLI Reference](cli.md#linux-steamproton-platform) for details.
 
 ### 3. Launch Balatro
 

@@ -2,16 +2,6 @@
 
 Guide for contributing to BalatroBot development.
 
-!!! warning "Help Needed: Linux (Proton) Support"
-
-    We currently lack CLI support for **Linux (Proton)**. Contributions to implement this platform are highly welcome!
-
-    Please refer to the existing implementations for guidance:
-
-    - **macOS:** `src/balatrobot/platforms/macos.py`
-    - **Windows:** `src/balatrobot/platforms/windows.py`
-    - **Linux (Native):** `src/balatrobot/platforms/native.py`
-
 ## Prerequisites
 
 - **Balatro** (v1.0.1+) - Purchase from [Steam](https://store.steampowered.com/app/2379780/Balatro/)
@@ -215,6 +205,23 @@ make all       # Run quality checks + tests
 !!! note "Test Fixtures"
 
     The `make fixtures` command is only required if you need to explicitly generate fixtures. When running tests, missing fixtures are automatically generated if required.
+
+### Steam Deck / Environments Without Make
+
+On platforms where `make` is not available (e.g. Steam Deck's read-only OS), use `scripts/dev.sh` as a drop-in replacement:
+
+```bash
+./scripts/dev.sh help      # Show all available commands
+./scripts/dev.sh install   # Install all dependencies
+./scripts/dev.sh lint      # Run ruff linter
+./scripts/dev.sh format    # Format code
+./scripts/dev.sh typecheck # Run type checkers
+./scripts/dev.sh quality   # Run all quality checks
+./scripts/dev.sh test      # Run all tests
+./scripts/dev.sh all       # Run quality checks + tests
+```
+
+The script mirrors all Makefile targets and can be used anywhere `make <target>` is referenced in these docs.
 
 ## Code Structure
 

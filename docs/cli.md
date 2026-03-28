@@ -223,6 +223,37 @@ uvx balatrobot serve --fast
 uvx balatrobot serve --love-path "/path/to/love" --lovely-path "/path/to/liblovely.dylib"
 ```
 
+### Linux (Steam/Proton) Platform
+
+The `linux` platform launches Balatro via Steam's Proton compatibility layer. The CLI auto-detects Steam, Proton, and Balatro paths across all Steam library folders.
+
+**Auto-Detected Paths:**
+
+- `BALATROBOT_LOVE_PATH`: `~/.local/share/Steam/steamapps/common/Balatro/Balatro.exe`
+- `BALATROBOT_LOVELY_PATH`: `~/.local/share/Steam/steamapps/common/Balatro/version.dll`
+
+**Requirements:**
+
+- Balatro installed via Steam
+- [Proton](https://github.com/ValveSoftware/Proton) installed via Steam (Settings > Compatibility)
+- [Lovely Injector](https://github.com/ethangreen-dev/lovely-injector) `version.dll` placed in the Balatro game directory
+- Balatro must have been run at least once through Steam to create the Wine prefix
+- Mods directory: `~/.local/share/Steam/steamapps/compatdata/2379780/pfx/drive_c/users/steamuser/AppData/Roaming/Balatro/Mods`
+
+**Launch:**
+
+```bash
+# Auto-detects paths
+uvx balatrobot serve --fast
+
+# Or specify custom paths
+uvx balatrobot serve --love-path "/path/to/Balatro.exe" --lovely-path "/path/to/version.dll"
+```
+
+!!! note "Steam Deck"
+
+    This platform works on Steam Deck. Since the read-only OS does not include `make`, use `./scripts/dev.sh` as a drop-in replacement for development tasks (see [Contributing](contributing.md#steam-deck--environments-without-make)).
+
 ### Native Platform (Linux Only)
 
 The `native` platform runs Balatro from source code using the LÖVE framework installed via package manager. This requires specific directory structure:
