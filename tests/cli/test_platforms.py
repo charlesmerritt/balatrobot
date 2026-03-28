@@ -1,11 +1,17 @@
 """Tests for balatrobot.platforms module."""
 
 import platform as platform_module
+from pathlib import Path
 
 import pytest
 
 from balatrobot.config import Config
 from balatrobot.platforms import VALID_PLATFORMS, get_launcher
+from balatrobot.platforms.linux import (
+    LinuxLauncher,
+    _parse_library_folders,
+    _parse_proton_version,
+)
 from balatrobot.platforms.macos import MacOSLauncher
 from balatrobot.platforms.native import NativeLauncher
 from balatrobot.platforms.windows import WindowsLauncher
@@ -38,10 +44,10 @@ class TestGetLauncher:
         launcher = get_launcher("windows")
         assert isinstance(launcher, WindowsLauncher)
 
-    def test_linux_not_implemented(self):
-        """'linux' raises NotImplementedError."""
-        with pytest.raises(NotImplementedError):
-            get_launcher("linux")
+    def test_linux_returns_linux_launcher(self):
+        """'linux' returns LinuxLauncher."""
+        launcher = get_launcher("linux")
+        assert isinstance(launcher, LinuxLauncher)
 
     def test_valid_platforms_constant(self):
         """VALID_PLATFORMS contains expected values."""
@@ -176,3 +182,273 @@ class TestWindowsLauncher:
         cmd = launcher.build_cmd(config)
 
         assert cmd == [r"C:\path\to\Balatro.exe"]
+
+
+class TestParseProtonVersion:
+    """Tests for _parse_proton_version."""
+
+    def test_stable_version(self):
+        assert _parse_proton_version("Proton 10.0") == (10, 0)
+
+    def test_older_version(self):
+        assert _parse_proton_version("Proton 8.0") == (8, 0)
+
+    def test_beta_excluded(self):
+        assert _parse_proton_version("Proton 9.0 (Beta)") is None
+
+    def test_experimental_excluded(self):
+        assert _parse_proton_version("Proton - Experimental") is None
+
+    def test_hotfix_excluded(self):
+        assert _parse_proton_version("Proton Hotfix") is None
+
+    def test_not_proton(self):
+        assert _parse_proton_version("Something Else") is None
+
+
+class TestParseLibraryFolders:
+    """Tests for _parse_library_folders."""
+
+    def test_single_library(self, tmp_path):
+        vdf = tmp_path / "libraryfolders.vdf"
+        vdf.write_text(
+            '"libraryfolders"\n{\n\t"0"\n\t{\n'
+            '\t\t"path"\t\t"/home/user/.local/share/Steam"\n'
+            "\t}\n}\n"
+        )
+        paths = _parse_library_folders(vdf)
+        assert len(paths) == 1
+        assert paths[0] == Path("/home/user/.local/share/Steam")
+
+    def test_multiple_libraries(self, tmp_path):
+        vdf = tmp_path / "libraryfolders.vdf"
+        vdf.write_text(
+            '"libraryfolders"\n{\n\t"0"\n\t{\n'
+            '\t\t"path"\t\t"/home/user/.local/share/Steam"\n'
+            '\t}\n\t"1"\n\t{\n'
+            '\t\t"path"\t\t"/run/media/sdcard/SteamLibrary"\n'
+            "\t}\n}\n"
+        )
+        paths = _parse_library_folders(vdf)
+        assert len(paths) == 2
+        assert paths[1] == Path("/run/media/sdcard/SteamLibrary")
+
+
+@pytest.mark.skipif(not IS_LINUX, reason="Linux only")
+class TestLinuxLauncher:
+    """Tests for LinuxLauncher (Linux only)."""
+
+    def _make_steam_tree(self, tmp_path):
+        """Create a minimal fake Steam directory tree."""
+        steam = tmp_path / "Steam"
+        steamapps = steam / "steamapps"
+        balatro_dir = steamapps / "common" / "Balatro"
+        balatro_dir.mkdir(parents=True)
+
+        # Balatro.exe
+        exe = balatro_dir / "Balatro.exe"
+        exe.touch()
+
+        # version.dll (lovely)
+        dll = balatro_dir / "version.dll"
+        dll.touch()
+
+        # Proton
+        proton_dir = steamapps / "common" / "Proton 10.0"
+        proton_dir.mkdir(parents=True)
+        proton_script = proton_dir / "proton"
+        proton_script.touch()
+
+        # Compat data (Wine prefix)
+        compat = steamapps / "compatdata" / "2379780"
+        compat.mkdir(parents=True)
+
+        # libraryfolders.vdf
+        vdf = steamapps / "libraryfolders.vdf"
+        vdf.write_text(
+            f'"libraryfolders"\n{{\n\t"0"\n\t{{\n\t\t"path"\t\t"{steam}"\n\t}}\n}}\n'
+        )
+
+        return steam
+
+    def test_validate_paths_auto_detects(self, tmp_path, monkeypatch):
+        """Auto-detects Balatro, Proton, and compat data from Steam tree."""
+        steam = self._make_steam_tree(tmp_path)
+        monkeypatch.setattr(
+            "balatrobot.platforms.linux._STEAM_ROOT_CANDIDATES", [steam]
+        )
+
+        launcher = LinuxLauncher()
+        config = Config()
+        launcher.validate_paths(config)
+
+        assert config.love_path == str(steam / "steamapps/common/Balatro/Balatro.exe")
+        assert config.lovely_path == str(steam / "steamapps/common/Balatro/version.dll")
+
+    def test_validate_paths_no_steam(self, tmp_path, monkeypatch):
+        """Raises RuntimeError when Steam is not found."""
+        monkeypatch.setattr(
+            "balatrobot.platforms.linux._STEAM_ROOT_CANDIDATES",
+            [tmp_path / "nonexistent"],
+        )
+
+        launcher = LinuxLauncher()
+        config = Config()
+        with pytest.raises(RuntimeError, match="Steam installation not found"):
+            launcher.validate_paths(config)
+
+    def test_validate_paths_no_balatro(self, tmp_path, monkeypatch):
+        """Raises RuntimeError when Balatro is not installed."""
+        steam = tmp_path / "Steam"
+        steamapps = steam / "steamapps"
+        steamapps.mkdir(parents=True)
+        # Proton exists but no Balatro
+        proton_dir = steamapps / "common" / "Proton 10.0"
+        proton_dir.mkdir(parents=True)
+        (proton_dir / "proton").touch()
+        (steamapps / "compatdata" / "2379780").mkdir(parents=True)
+        (steamapps / "libraryfolders.vdf").write_text(
+            f'"libraryfolders"\n{{\n\t"0"\n\t{{\n\t\t"path"\t\t"{steam}"\n\t}}\n}}\n'
+        )
+        monkeypatch.setattr(
+            "balatrobot.platforms.linux._STEAM_ROOT_CANDIDATES", [steam]
+        )
+
+        launcher = LinuxLauncher()
+        config = Config()
+        with pytest.raises(RuntimeError, match="Balatro not found"):
+            launcher.validate_paths(config)
+
+    def test_validate_paths_no_proton(self, tmp_path, monkeypatch):
+        """Raises RuntimeError when no Proton is installed."""
+        steam = tmp_path / "Steam"
+        steamapps = steam / "steamapps"
+        balatro_dir = steamapps / "common" / "Balatro"
+        balatro_dir.mkdir(parents=True)
+        (balatro_dir / "Balatro.exe").touch()
+        (balatro_dir / "version.dll").touch()
+        (steamapps / "compatdata" / "2379780").mkdir(parents=True)
+        (steamapps / "libraryfolders.vdf").write_text(
+            f'"libraryfolders"\n{{\n\t"0"\n\t{{\n\t\t"path"\t\t"{steam}"\n\t}}\n}}\n'
+        )
+        monkeypatch.setattr(
+            "balatrobot.platforms.linux._STEAM_ROOT_CANDIDATES", [steam]
+        )
+
+        launcher = LinuxLauncher()
+        config = Config()
+        with pytest.raises(RuntimeError, match="No Proton installation found"):
+            launcher.validate_paths(config)
+
+    def test_validate_paths_no_compat_data(self, tmp_path, monkeypatch):
+        """Raises RuntimeError when Wine prefix is missing."""
+        steam = self._make_steam_tree(tmp_path)
+        # Remove compat data
+        import shutil
+
+        shutil.rmtree(steam / "steamapps" / "compatdata" / "2379780")
+        monkeypatch.setattr(
+            "balatrobot.platforms.linux._STEAM_ROOT_CANDIDATES", [steam]
+        )
+
+        launcher = LinuxLauncher()
+        config = Config()
+        with pytest.raises(RuntimeError, match="Wine prefix not found"):
+            launcher.validate_paths(config)
+
+    def test_validate_paths_explicit_overrides(self, tmp_path, monkeypatch):
+        """Explicit love_path and lovely_path override auto-detection."""
+        steam = self._make_steam_tree(tmp_path)
+        monkeypatch.setattr(
+            "balatrobot.platforms.linux._STEAM_ROOT_CANDIDATES", [steam]
+        )
+
+        custom_exe = tmp_path / "custom" / "Balatro.exe"
+        custom_dll = tmp_path / "custom" / "version.dll"
+        custom_exe.parent.mkdir()
+        custom_exe.touch()
+        custom_dll.touch()
+
+        launcher = LinuxLauncher()
+        config = Config(love_path=str(custom_exe), lovely_path=str(custom_dll))
+        launcher.validate_paths(config)
+
+        assert config.love_path == str(custom_exe)
+        assert config.lovely_path == str(custom_dll)
+
+    def test_build_env_includes_proton_vars(self, tmp_path, monkeypatch):
+        """build_env sets STEAM_COMPAT_DATA_PATH and related vars."""
+        steam = self._make_steam_tree(tmp_path)
+        monkeypatch.setattr(
+            "balatrobot.platforms.linux._STEAM_ROOT_CANDIDATES", [steam]
+        )
+
+        launcher = LinuxLauncher()
+        config = Config()
+        launcher.validate_paths(config)
+        env = launcher.build_env(config)
+
+        assert env["STEAM_COMPAT_DATA_PATH"] == str(
+            steam / "steamapps/compatdata/2379780"
+        )
+        assert env["STEAM_COMPAT_CLIENT_INSTALL_PATH"] == str(steam)
+        assert env["SteamAppId"] == "2379780"
+        assert env["SteamGameId"] == "2379780"
+        assert env["WINEDLLOVERRIDES"] == "version=n,b"
+
+    def test_build_cmd(self, tmp_path, monkeypatch):
+        """build_cmd returns proton run command."""
+        steam = self._make_steam_tree(tmp_path)
+        monkeypatch.setattr(
+            "balatrobot.platforms.linux._STEAM_ROOT_CANDIDATES", [steam]
+        )
+
+        launcher = LinuxLauncher()
+        config = Config()
+        launcher.validate_paths(config)
+        cmd = launcher.build_cmd(config)
+
+        proton = str(steam / "steamapps/common/Proton 10.0/proton")
+        exe = str(steam / "steamapps/common/Balatro/Balatro.exe")
+        assert cmd == [proton, "run", exe]
+
+    def test_picks_latest_proton_version(self, tmp_path, monkeypatch):
+        """Picks the highest stable Proton version when multiple exist."""
+        steam = self._make_steam_tree(tmp_path)
+        common = steam / "steamapps" / "common"
+        # Add an older Proton
+        older = common / "Proton 8.0"
+        older.mkdir()
+        (older / "proton").touch()
+        monkeypatch.setattr(
+            "balatrobot.platforms.linux._STEAM_ROOT_CANDIDATES", [steam]
+        )
+
+        launcher = LinuxLauncher()
+        config = Config()
+        launcher.validate_paths(config)
+        cmd = launcher.build_cmd(config)
+
+        assert "Proton 10.0" in cmd[0]
+
+    def test_falls_back_to_experimental(self, tmp_path, monkeypatch):
+        """Falls back to Proton Experimental when no stable version exists."""
+        steam = self._make_steam_tree(tmp_path)
+        common = steam / "steamapps" / "common"
+        # Remove versioned Proton, add Experimental
+        import shutil
+
+        shutil.rmtree(common / "Proton 10.0")
+        exp = common / "Proton - Experimental"
+        exp.mkdir()
+        (exp / "proton").touch()
+        monkeypatch.setattr(
+            "balatrobot.platforms.linux._STEAM_ROOT_CANDIDATES", [steam]
+        )
+
+        launcher = LinuxLauncher()
+        config = Config()
+        launcher.validate_paths(config)
+        cmd = launcher.build_cmd(config)
+
+        assert "Proton - Experimental" in cmd[0]
