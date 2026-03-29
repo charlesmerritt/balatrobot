@@ -627,3 +627,47 @@ class TestLinuxLauncherDisplayEnv:
         env = launcher.build_env(config)
 
         assert "DISPLAY" not in env
+
+    def test_warns_when_display_not_detected(self, tmp_path, monkeypatch, caplog):
+        """Warning logged when DISPLAY cannot be auto-detected."""
+        steam = self._make_steam_tree(tmp_path)
+        monkeypatch.setattr(
+            "balatrobot.platforms.linux._STEAM_ROOT_CANDIDATES", [steam]
+        )
+        monkeypatch.delenv("DISPLAY", raising=False)
+        monkeypatch.setattr(
+            "balatrobot.platforms.linux._detect_display", lambda: None
+        )
+
+        launcher = LinuxLauncher()
+        config = Config()
+        launcher.validate_paths(config)
+
+        import logging
+
+        with caplog.at_level(logging.WARNING):
+            launcher.build_env(config)
+
+        assert "Could not auto-detect X11 display" in caplog.text
+
+    def test_warns_when_xauthority_not_detected(self, tmp_path, monkeypatch, caplog):
+        """Warning logged when XAUTHORITY cannot be auto-detected."""
+        steam = self._make_steam_tree(tmp_path)
+        monkeypatch.setattr(
+            "balatrobot.platforms.linux._STEAM_ROOT_CANDIDATES", [steam]
+        )
+        monkeypatch.delenv("XAUTHORITY", raising=False)
+        monkeypatch.setattr(
+            "balatrobot.platforms.linux._detect_xauthority", lambda: None
+        )
+
+        launcher = LinuxLauncher()
+        config = Config()
+        launcher.validate_paths(config)
+
+        import logging
+
+        with caplog.at_level(logging.WARNING):
+            launcher.build_env(config)
+
+        assert "Could not auto-detect Xauthority" in caplog.text

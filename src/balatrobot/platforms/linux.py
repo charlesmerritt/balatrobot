@@ -1,10 +1,13 @@
 """Linux platform launcher via Steam Proton."""
 
 import glob
+import logging
 import os
 import platform
 import re
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 from balatrobot.config import Config
 from balatrobot.platforms.base import BaseLauncher
@@ -261,6 +264,11 @@ class LinuxLauncher(BaseLauncher):
             display = _detect_display()
             if display:
                 env["DISPLAY"] = display
+            else:
+                logger.warning(
+                    "Could not auto-detect X11 display. "
+                    "Set DISPLAY manually or ensure an X server is running."
+                )
 
         # Xauthority — required to authenticate with the X server.
         # On Steam Deck the auth file lives in XDG_RUNTIME_DIR with a
@@ -269,6 +277,11 @@ class LinuxLauncher(BaseLauncher):
             xauth = _detect_xauthority()
             if xauth:
                 env["XAUTHORITY"] = xauth
+            else:
+                logger.warning(
+                    "Could not auto-detect Xauthority file. "
+                    "Set XAUTHORITY manually if X11 authentication fails."
+                )
 
         env["STEAM_COMPAT_DATA_PATH"] = str(self._compat_data)
         env["STEAM_COMPAT_CLIENT_INSTALL_PATH"] = str(self._steam_root)
