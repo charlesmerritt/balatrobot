@@ -1,5 +1,6 @@
 """Linux platform launcher via Steam Proton."""
 
+import glob
 import os
 import platform
 import re
@@ -14,6 +15,45 @@ _STEAM_ROOT_CANDIDATES = [
     Path.home() / ".local/share/Steam",
     Path.home() / ".steam/steam",
 ]
+
+
+def _detect_display() -> str | None:
+    """Detect the X11 display from /tmp/.X11-unix sockets.
+
+    When running from a non-graphical session (e.g. SSH into a Steam Deck),
+    DISPLAY is typically unset even though an X server is running under
+    gamescope. This checks for X11 sockets to find the right display.
+    """
+    try:
+        sockets = sorted(Path("/tmp/.X11-unix").iterdir())
+        if sockets:
+            # Socket names are like X0, X1 — extract the display number
+            name = sockets[0].name  # e.g. "X0"
+            return f":{name[1:]}"
+    except (FileNotFoundError, PermissionError):
+        pass
+    return None
+
+
+def _detect_xauthority() -> str | None:
+    """Detect the Xauthority file for the current user.
+
+    On Steam Deck (and other systems using startx/gamescope), the Xauthority
+    file is stored in XDG_RUNTIME_DIR with a random suffix rather than the
+    traditional ~/.Xauthority location.
+    """
+    # Check XDG_RUNTIME_DIR first (Steam Deck puts it here)
+    runtime_dir = os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")
+    matches = glob.glob(os.path.join(runtime_dir, "xauth_*"))
+    if matches:
+        return matches[0]
+
+    # Fall back to ~/.Xauthority
+    home_xauth = Path.home() / ".Xauthority"
+    if home_xauth.is_file():
+        return str(home_xauth)
+
+    return None
 
 
 def _parse_library_folders(vdf_path: Path) -> list[Path]:
@@ -204,17 +244,40 @@ class LinuxLauncher(BaseLauncher):
             raise RuntimeError("Path validation failed:\n\n" + "\n\n".join(errors))
 
     def build_env(self, config: Config) -> dict[str, str]:
-        """Build environment with Proton compatibility variables."""
+        """Build environment with Proton compatibility variables.
+
+        Auto-detects DISPLAY and XAUTHORITY when not already set, which is
+        common when running from SSH or a non-graphical session on Steam Deck.
+        """
         assert self._steam_root is not None
         assert self._compat_data is not None
 
         env = os.environ.copy()
+
+        # X11 display — required for the game window to render.
+        # On Steam Deck via SSH, DISPLAY is unset even though gamescope
+        # provides an X server.
+        if "DISPLAY" not in env:
+            display = _detect_display()
+            if display:
+                env["DISPLAY"] = display
+
+        # Xauthority — required to authenticate with the X server.
+        # On Steam Deck the auth file lives in XDG_RUNTIME_DIR with a
+        # random suffix (e.g. /run/user/1000/xauth_IiwJYr).
+        if "XAUTHORITY" not in env:
+            xauth = _detect_xauthority()
+            if xauth:
+                env["XAUTHORITY"] = xauth
+
         env["STEAM_COMPAT_DATA_PATH"] = str(self._compat_data)
         env["STEAM_COMPAT_CLIENT_INSTALL_PATH"] = str(self._steam_root)
         env["SteamAppId"] = BALATRO_APP_ID
         env["SteamGameId"] = BALATRO_APP_ID
         # Force Wine to load the native version.dll (Lovely injector) from
         # the game directory instead of Wine's built-in implementation.
+        # This is the equivalent of setting the Steam launch option:
+        #   WINEDLLOVERRIDES="version=n,b" %command%
         env["WINEDLLOVERRIDES"] = "version=n,b"
         env.update(config.to_env())
         return env

@@ -232,6 +232,14 @@ The `linux` platform launches Balatro via Steam's Proton compatibility layer. Th
 - `BALATROBOT_LOVE_PATH`: `~/.local/share/Steam/steamapps/common/Balatro/Balatro.exe`
 - `BALATROBOT_LOVELY_PATH`: `~/.local/share/Steam/steamapps/common/Balatro/version.dll`
 
+**Auto-Detected Environment:**
+
+The launcher automatically configures the following when not already set:
+
+- `DISPLAY`: Detected from X11 sockets in `/tmp/.X11-unix/` (e.g. `:0`)
+- `XAUTHORITY`: Detected from `XDG_RUNTIME_DIR/xauth_*` or `~/.Xauthority`
+- `WINEDLLOVERRIDES=version=n,b`: Forces Wine to load the native `version.dll` (Lovely injector) instead of Wine's built-in implementation. This is the equivalent of setting the Steam launch option `WINEDLLOVERRIDES="version=n,b" %command%`.
+
 **Requirements:**
 
 - Balatro installed via Steam
@@ -243,7 +251,7 @@ The `linux` platform launches Balatro via Steam's Proton compatibility layer. Th
 **Launch:**
 
 ```bash
-# Auto-detects paths
+# Auto-detects paths, display, and Wine configuration
 uvx balatrobot serve --fast
 
 # Or specify custom paths
@@ -252,7 +260,7 @@ uvx balatrobot serve --love-path "/path/to/Balatro.exe" --lovely-path "/path/to/
 
 !!! note "Steam Deck"
 
-    This platform works on Steam Deck. Since the read-only OS does not include `make`, use `./scripts/dev.sh` as a drop-in replacement for development tasks (see [Contributing](contributing.md#steam-deck--environments-without-make)).
+    This platform works on Steam Deck, including when connected via SSH where `DISPLAY` and `XAUTHORITY` are not set. The launcher auto-detects the gamescope X server and Xauthority file. Since the read-only OS does not include `make`, use `./scripts/dev.sh` as a drop-in replacement for development tasks (see [Contributing](contributing.md#steam-deck--environments-without-make)).
 
 ### Native Platform (Linux Only)
 
