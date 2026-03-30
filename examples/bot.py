@@ -1,10 +1,3 @@
-# Example Bot
-
-A minimal Python bot that plays Balatro using the BalatroBot API.
-
-## The Bot
-
-```python
 # /// script
 # requires-python = ">=3.11"
 # dependencies = [
@@ -75,36 +68,3 @@ def play_game():
 
 if __name__ == "__main__":
     play_game()
-```
-
-## Running the Bot
-
-1. Start Balatro with the mod:
-
-    ```bash
-    uvx balatrobot serve
-    ```
-
-2. In another terminal, run the bot from the repo root:
-
-    ```bash
-    uv run examples/bot.py
-    ```
-
-The bot will automatically start a new game and play until it wins or loses.
-
-## Community Bots
-
-Looking for more advanced examples? Check out these bots created by the community:
-
-- [polina4096/Ballad](https://github.com/polina4096/Ballad): LLMs play balatro through Anthropic-compatible APIs
-
-!!! tip "Share Your Bot"
-
-    Built a bot with BalatroBot? We'd love to feature it here! Share your repository with the community:
-
-    - Tag `@S1M0N38` on the [BalatroBot Discord server](https://discord.gg/TPn6FYgGPv)
-    - [Open an issue](https://github.com/coder/balatrobot/issues/new) on GitHub
-    - [Submit a pull request](https://github.com/coder/balatrobot/pulls) to add your bot to this list
-
-    Whether it's a simple strategy or a sophisticated AI, sharing your work helps others learn and grow the BalatroBot ecosystem!
