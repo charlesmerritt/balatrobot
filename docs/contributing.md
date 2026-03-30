@@ -26,6 +26,8 @@ Guide for contributing to BalatroBot development.
 
 We use [direnv](https://direnv.net/) to automatically manage environment variables and virtual environment activation. When you `cd` into the project directory, direnv automatically loads settings from `.envrc`.
 
+!!! warning "Contains Secrets"
+
 The `.envrc` file may contain API keys and tokens. **Never commit this file**.
 
 **Example `.envrc` configuration:**
