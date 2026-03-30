@@ -28,7 +28,7 @@ We use [direnv](https://direnv.net/) to automatically manage environment variabl
 
 !!! warning "Contains Secrets"
 
-The `.envrc` file may contain API keys and tokens. **Never commit this file**.
+    The `.envrc` file may contain API keys and tokens. **Never commit this file**.
 
 **Example `.envrc` configuration:**
 
