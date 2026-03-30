@@ -8,6 +8,7 @@ set -euo pipefail
 YELLOW='\033[33m'
 GREEN='\033[32m'
 BLUE='\033[34m'
+RED='\033[31m'
 RESET='\033[0m'
 
 MAX_XDIST="${MAX_XDIST:-6}"
@@ -26,6 +27,7 @@ cmd_help() {
     printf "  ${GREEN}%-18s${RESET} %s\n" "typecheck" "Run type checkers (Python and Lua)"
     printf "  ${GREEN}%-18s${RESET} %s\n" "quality"   "Run all code quality checks"
     printf "  ${GREEN}%-18s${RESET} %s\n" "fixtures"  "Generate fixtures"
+    printf "  ${GREEN}%-18s${RESET} %s\n" "stop"      "Stop BalatroBot and Balatro processes"
     printf "  ${GREEN}%-18s${RESET} %s\n" "test"      "Run all tests"
     printf "  ${GREEN}%-18s${RESET} %s\n" "all"       "Run all code quality checks and tests"
 }
@@ -82,6 +84,24 @@ cmd_fixtures() {
     fi
 }
 
+cmd_stop() {
+    local stopped=0
+
+    if pkill -f "balatrobot serve" >/dev/null 2>&1; then
+        print_msg "${YELLOW}Stopped BalatroBot serve process(es).${RESET}"
+        stopped=1
+    fi
+
+    if pkill -f "Balatro.exe" >/dev/null 2>&1; then
+        print_msg "${YELLOW}Stopped Balatro game process(es).${RESET}"
+        stopped=1
+    fi
+
+    if [ "$stopped" -eq 0 ]; then
+        print_msg "${BLUE}No BalatroBot or Balatro processes found.${RESET}"
+    fi
+}
+
 cmd_test() {
     print_msg "${YELLOW}Running tests/cli with 2 workers...${RESET}"
     pytest -n 2 tests/cli
@@ -99,11 +119,11 @@ cmd_all() {
 
 target="${1:-help}"
 case "$target" in
-    help|install|lint|format|typecheck|quality|fixtures|test|all)
+    help|install|lint|format|typecheck|quality|fixtures|stop|test|all)
         "cmd_${target}"
         ;;
     *)
-        print_msg "\033[31mUnknown target: ${target}${RESET}"
+        print_msg "${RED}Unknown target: ${target}${RESET}"
         cmd_help
         exit 1
         ;;
