@@ -75,10 +75,11 @@ cmd_quality() {
 }
 
 cmd_fixtures() {
-    print_msg "${YELLOW}Starting Balatro...${RESET}"
-    balatrobot --fast --debug
     print_msg "${YELLOW}Generating all fixtures...${RESET}"
-    python tests/fixtures/generate.py
+    if ! python tests/fixtures/generate.py; then
+        print_msg "${RED}Fixture generation failed. Make sure BalatroBot is already running and reachable, then try again.${RESET}"
+        return 1
+    fi
 }
 
 cmd_test() {
