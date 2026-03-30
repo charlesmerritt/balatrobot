@@ -223,7 +223,9 @@ uvx balatrobot serve --fast
 uvx balatrobot serve --love-path "/path/to/love" --lovely-path "/path/to/liblovely.dylib"
 ```
 
-### Linux (Steam/Proton) Platform
+### Linux (Steam/Proton) Platform (Experimental)
+
+This platform is in development, and you may encounter bugs. If you do intend to run BalatroBot on Steam Deck/Proton, please report any issues you encounter.
 
 The `linux` platform launches Balatro via Steam's Proton compatibility layer. The CLI auto-detects Steam, Proton, and Balatro paths across all Steam library folders.
 
