@@ -2,6 +2,16 @@
 
 Guide for contributing to BalatroBot development.
 
+!!! warning "Help Needed: Linux (Proton) Support"
+
+    CLI support for **Linux (Proton)** is in development. Contributions to implement this platform are highly welcome!
+
+    Please refer to the existing implementations for guidance:
+
+    - **macOS:** `src/balatrobot/platforms/macos.py`
+    - **Windows:** `src/balatrobot/platforms/windows.py`
+    - **Linux (Native):** `src/balatrobot/platforms/native.py`
+
 ## Prerequisites
 
 - **Balatro** (v1.0.1+) - Purchase from [Steam](https://store.steampowered.com/app/2379780/Balatro/)
@@ -74,7 +84,7 @@ Then update the `workspace.library` paths in `.luarc.json` — the Steamodded `l
 
     Your `smods` directory may include a version suffix (e.g. `smods-1.0.0-beta-1503a`). Use the actual directory name on your system.
 
-**Example `.luarc.json` (macOS):**
+**Example `.luarc.json`:**
 
 ```json
 {
@@ -82,38 +92,8 @@ Then update the `workspace.library` paths in `.luarc.json` — the Steamodded `l
   "workspace": {
     "library": [
       "/path/to/Balatro/Mods/smods/lsp_def",
-      ".lua-lsp/love2d/library",
-      ".lua-lsp/luasocket/library",
-      "src/lua"
-    ]
-  },
-  "diagnostics": {
-    "disable": [
-      "lowercase-global"
-    ],
-    "globals": [
-      "G",
-      "BB_GAMESTATE",
-      "BB_ERROR_NAMES",
-      "BB_ENDPOINTS"
-    ]
-  },
-  "type": {
-    "weakUnionCheck": true
-  }
-}
-```
-
-**Example `.luarc.json` (Linux/Proton):**
-
-```json
-{
-  "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
-  "workspace": {
-    "library": [
-      "~/.local/share/Steam/steamapps/compatdata/2379780/pfx/drive_c/users/steamuser/AppData/Roaming/Balatro/Mods/smods/lsp_def",
-      ".lua-lsp/love2d/library",
-      ".lua-lsp/luasocket/library",
+      "/path/to/love2d/library",
+      "/path/to/luasocket/library",
       "src/lua"
     ]
   },
@@ -181,7 +161,7 @@ make install
 
 Activate the virtual environment to use the `balatrobot` command:
 
-**macOS/Linux:**
+**macOS/Linux (Native or Proton):**
 
 ```bash
 source .venv/bin/activate
@@ -213,6 +193,7 @@ Tests use Python + pytest to communicate with the Lua API. You don't need to hav
 
 ```bash
 # Run all tests (runs CLI and Lua suites separately)
+# If on Proton/Steam Deck use: uv run ./scripts/dev.sh test
 make test
 
 # Run Lua tests (parallel execution recommended)
