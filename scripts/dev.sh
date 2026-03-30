@@ -14,7 +14,7 @@ RESET='\033[0m'
 MAX_XDIST="${MAX_XDIST:-6}"
 CLI_XDIST_WORKERS="${CLI_XDIST_WORKERS:-2}"
 XDIST_WORKERS=$(python -c "import multiprocessing as mp; print(min(mp.cpu_count(), $MAX_XDIST))")
-LUA_XDIST_WORKERS=$(python -c "print(max($XDIST_WORKERS - $CLI_XDIST_WORKERS, 1))")
+LUA_XDIST_WORKERS="${LUA_XDIST_WORKERS:-2}"
 
 print_msg() { printf "%b\n" "$1"; }
 
