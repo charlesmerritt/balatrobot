@@ -414,33 +414,11 @@ class TestLinuxLauncher:
         exe = str(steam / "steamapps/common/Balatro/Balatro.exe")
         assert cmd == [proton, "run", exe]
 
-    def test_picks_latest_proton_version(self, tmp_path, monkeypatch):
-        """Picks the highest stable Proton version when multiple exist."""
+    def test_prefers_experimental_over_stable(self, tmp_path, monkeypatch):
+        """Prefers Proton - Experimental when both it and stable exist."""
         steam = self._make_steam_tree(tmp_path)
         common = steam / "steamapps" / "common"
-        # Add an older Proton
-        older = common / "Proton 8.0"
-        older.mkdir()
-        (older / "proton").touch()
-        monkeypatch.setattr(
-            "balatrobot.platforms.linux._STEAM_ROOT_CANDIDATES", [steam]
-        )
-
-        launcher = LinuxLauncher()
-        config = Config()
-        launcher.validate_paths(config)
-        cmd = launcher.build_cmd(config)
-
-        assert "Proton 10.0" in cmd[0]
-
-    def test_falls_back_to_experimental(self, tmp_path, monkeypatch):
-        """Falls back to Proton Experimental when no stable version exists."""
-        steam = self._make_steam_tree(tmp_path)
-        common = steam / "steamapps" / "common"
-        # Remove versioned Proton, add Experimental
-        import shutil
-
-        shutil.rmtree(common / "Proton 10.0")
+        # Add Experimental alongside Proton 10.0
         exp = common / "Proton - Experimental"
         exp.mkdir()
         (exp / "proton").touch()
@@ -454,6 +432,25 @@ class TestLinuxLauncher:
         cmd = launcher.build_cmd(config)
 
         assert "Proton - Experimental" in cmd[0]
+
+    def test_falls_back_to_latest_stable(self, tmp_path, monkeypatch):
+        """Falls back to latest stable Proton when Experimental is absent."""
+        steam = self._make_steam_tree(tmp_path)
+        common = steam / "steamapps" / "common"
+        # Add an older Proton (no Experimental in _make_steam_tree)
+        older = common / "Proton 8.0"
+        older.mkdir()
+        (older / "proton").touch()
+        monkeypatch.setattr(
+            "balatrobot.platforms.linux._STEAM_ROOT_CANDIDATES", [steam]
+        )
+
+        launcher = LinuxLauncher()
+        config = Config()
+        launcher.validate_paths(config)
+        cmd = launcher.build_cmd(config)
+
+        assert "Proton 10.0" in cmd[0]
 
 
 class TestDetectDisplay:

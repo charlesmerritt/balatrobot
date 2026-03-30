@@ -55,7 +55,28 @@ The `.luarc.json` file should be placed at the root of the balatrobot repository
     - Love2D library: `path/to/love2d/library` (clone locally: [LuaCATS/love2d](https://github.com/LuaCATS/love2d))
     - LuaSocket library: `path/to/luasocket/library` (clone locally: [LuaCATS/luasocket](https://github.com/LuaCATS/luasocket))
 
-**Example `.luarc.json`:**
+**Quick setup:** Clone the LuaCATS libraries into a `.lua-lsp/` directory (already gitignored):
+
+```bash
+mkdir -p .lua-lsp
+git clone --depth 1 https://github.com/LuaCATS/love2d.git .lua-lsp/love2d
+git clone --depth 1 https://github.com/LuaCATS/luasocket.git .lua-lsp/luasocket
+```
+
+Then update the `workspace.library` paths in `.luarc.json` — the Steamodded `lsp_def` path varies by platform:
+
+| Platform             | Steamodded `lsp_def` path                                                                                                    |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| macOS                | `~/Library/Application Support/Balatro/Mods/smods/lsp_def`                                                                   |
+| Windows              | `%AppData%/Balatro/Mods/smods/lsp_def`                                                                                       |
+| Linux (Steam/Proton) | `~/.local/share/Steam/steamapps/compatdata/2379780/pfx/drive_c/users/steamuser/AppData/Roaming/Balatro/Mods/smods/lsp_def`   |
+| Linux (Native)       | `~/.config/love/Mods/smods/lsp_def`                                                                                          |
+
+!!! note "Steamodded version suffix"
+
+    Your `smods` directory may include a version suffix (e.g. `smods-1.0.0-beta-1503a`). Use the actual directory name on your system.
+
+**Example `.luarc.json` (macOS):**
 
 ```json
 {
@@ -63,8 +84,38 @@ The `.luarc.json` file should be placed at the root of the balatrobot repository
   "workspace": {
     "library": [
       "/path/to/Balatro/Mods/smods/lsp_def",
-      "/path/to/love2d/library",
-      "/path/to/luasocket/library",
+      ".lua-lsp/love2d/library",
+      ".lua-lsp/luasocket/library",
+      "src/lua"
+    ]
+  },
+  "diagnostics": {
+    "disable": [
+      "lowercase-global"
+    ],
+    "globals": [
+      "G",
+      "BB_GAMESTATE",
+      "BB_ERROR_NAMES",
+      "BB_ENDPOINTS"
+    ]
+  },
+  "type": {
+    "weakUnionCheck": true
+  }
+}
+```
+
+**Example `.luarc.json` (Linux/Proton):**
+
+```json
+{
+  "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
+  "workspace": {
+    "library": [
+      "~/.local/share/Steam/steamapps/compatdata/2379780/pfx/drive_c/users/steamuser/AppData/Roaming/Balatro/Mods/smods/lsp_def",
+      ".lua-lsp/love2d/library",
+      ".lua-lsp/luasocket/library",
       "src/lua"
     ]
   },

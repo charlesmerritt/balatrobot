@@ -17,6 +17,8 @@ BALATRO_APP_ID = "2379780"
 _STEAM_ROOT_CANDIDATES = [
     Path.home() / ".local/share/Steam",
     Path.home() / ".steam/steam",
+    Path.home() / "snap/steam/common/.local/share/Steam",
+    Path.home() / ".var/app/com.valvesoftware.Steam/.local/share/Steam",
 ]
 
 
@@ -123,7 +125,18 @@ def _parse_proton_version(name: str) -> tuple[int, ...] | None:
 
 
 def _find_proton(libraries: list[Path]) -> Path | None:
-    """Find the latest stable Proton installation across all libraries."""
+    """Find the best Proton installation across all libraries.
+
+    Prefers Proton - Experimental (higher compatibility success rate),
+    then falls back to the latest stable versioned Proton.
+    """
+    # Prefer Proton - Experimental
+    for lib in libraries:
+        experimental = lib / "common" / "Proton - Experimental"
+        if experimental.is_dir() and (experimental / "proton").is_file():
+            return experimental
+
+    # Fall back to latest stable versioned Proton
     candidates: list[tuple[tuple[int, ...], Path]] = []
 
     for lib in libraries:
@@ -142,12 +155,6 @@ def _find_proton(libraries: list[Path]) -> Path | None:
     if candidates:
         candidates.sort(key=lambda c: c[0], reverse=True)
         return candidates[0][1]
-
-    # Fall back to Proton - Experimental
-    for lib in libraries:
-        experimental = lib / "common" / "Proton - Experimental"
-        if experimental.is_dir() and (experimental / "proton").is_file():
-            return experimental
 
     return None
 
@@ -168,9 +175,9 @@ class LinuxLauncher(BaseLauncher):
     injection works via version.dll, the same mechanism as on Windows.
 
     Auto-detects:
-    - Steam root (~/.local/share/Steam or ~/.steam/steam)
+    - Steam root (native, Snap, and Flatpak installations)
     - Balatro.exe across all Steam library folders
-    - Latest stable Proton version
+    - Proton runtime (prefers Experimental, falls back to latest stable)
     - version.dll (lovely) in the Balatro directory
     - Wine prefix (compatdata) for Balatro
     """
