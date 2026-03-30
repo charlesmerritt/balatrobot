@@ -51,6 +51,10 @@ export BALATROBOT_AUDIO=0
 
 **Setup:** Install [direnv](https://direnv.net/), then create `.envrc` in the project root with the above configuration, updating paths for your system.
 
+### External Development Tools
+
+`uv sync --group dev --group test` installs Python dependencies only. Non-Python tools such as `stylua` and `lua-language-server` are not managed by `uv` and must be installed separately if you want Lua formatting and Lua type checking.
+
 ### Lua LSP Configuration
 
 The `.luarc.json` file should be placed at the root of the balatrobot repository. It configures the Lua Language Server for IDE support (autocomplete, diagnostics, type checking).
@@ -73,12 +77,12 @@ git clone --depth 1 https://github.com/LuaCATS/luasocket.git .lua-lsp/luasocket
 
 Then update the `workspace.library` paths in `.luarc.json` — the Steamodded `lsp_def` path varies by platform:
 
-| Platform             | Steamodded `lsp_def` path                                                                                                    |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| macOS                | `~/Library/Application Support/Balatro/Mods/smods/lsp_def`                                                                   |
-| Windows              | `%AppData%/Balatro/Mods/smods/lsp_def`                                                                                       |
-| Linux (Steam/Proton) | `~/.local/share/Steam/steamapps/compatdata/2379780/pfx/drive_c/users/steamuser/AppData/Roaming/Balatro/Mods/smods/lsp_def`   |
-| Linux (Native)       | `~/.config/love/Mods/smods/lsp_def`                                                                                          |
+| Platform             | Steamodded `lsp_def` path                                                                                                  |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| macOS                | `~/Library/Application Support/Balatro/Mods/smods/lsp_def`                                                                 |
+| Windows              | `%AppData%/Balatro/Mods/smods/lsp_def`                                                                                     |
+| Linux (Steam/Proton) | `~/.local/share/Steam/steamapps/compatdata/2379780/pfx/drive_c/users/steamuser/AppData/Roaming/Balatro/Mods/smods/lsp_def` |
+| Linux (Native)       | `~/.config/love/Mods/smods/lsp_def`                                                                                        |
 
 !!! note "Steamodded version suffix"
 
