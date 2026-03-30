@@ -12,7 +12,9 @@ RED='\033[31m'
 RESET='\033[0m'
 
 MAX_XDIST="${MAX_XDIST:-6}"
+CLI_XDIST_WORKERS="${CLI_XDIST_WORKERS:-2}"
 XDIST_WORKERS=$(python -c "import multiprocessing as mp; print(min(mp.cpu_count(), $MAX_XDIST))")
+LUA_XDIST_WORKERS=$(python -c "print(max($XDIST_WORKERS - $CLI_XDIST_WORKERS, 1))")
 
 print_msg() { printf "%b\n" "$1"; }
 
@@ -103,10 +105,10 @@ cmd_stop() {
 }
 
 cmd_test() {
-    print_msg "${YELLOW}Running tests/cli with 2 workers...${RESET}"
-    pytest -n 2 tests/cli
-    print_msg "${YELLOW}Running tests/lua with ${XDIST_WORKERS} workers...${RESET}"
-    pytest -n "${XDIST_WORKERS}" tests/lua
+    print_msg "${YELLOW}Running tests/cli with ${CLI_XDIST_WORKERS} workers...${RESET}"
+    pytest -n "${CLI_XDIST_WORKERS}" tests/cli
+    print_msg "${YELLOW}Running tests/lua with ${LUA_XDIST_WORKERS} workers...${RESET}"
+    pytest -n "${LUA_XDIST_WORKERS}" tests/lua
 }
 
 cmd_all() {
