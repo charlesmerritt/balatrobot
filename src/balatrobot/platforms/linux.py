@@ -7,10 +7,10 @@ import platform
 import re
 from pathlib import Path
 
-logger = logging.getLogger(__name__)
-
 from balatrobot.config import Config
 from balatrobot.platforms.base import BaseLauncher
+
+logger = logging.getLogger(__name__)
 
 BALATRO_APP_ID = "2379780"
 
