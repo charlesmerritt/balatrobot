@@ -16,9 +16,7 @@ Guide for contributing to BalatroBot development.
 
 We use [direnv](https://direnv.net/) to automatically manage environment variables and virtual environment activation. When you `cd` into the project directory, direnv automatically loads settings from `.envrc`.
 
-!!! warning "Contains Secrets"
-
-    The `.envrc` file may contain API keys and tokens. **Never commit this file**.
+The `.envrc` file may contain API keys and tokens. **Never commit this file**.
 
 **Example `.envrc` configuration:**
 
@@ -173,7 +171,7 @@ ln -s "$(pwd)" ~/.config/love/Mods/balatrobot/
 New-Item -ItemType SymbolicLink -Path "$env:APPDATA\Balatro\Mods\balatrobot" -Target (Get-Location)
 ```
 
-### 3. Install Dependencies
+### 3. Install Dependencies (Windows/Mac/Linux Native only, see [Steam Deck / Environments Without Make](#steam-deck--environments-without-make))
 
 ```bash
 make install
