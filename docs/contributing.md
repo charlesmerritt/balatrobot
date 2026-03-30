@@ -254,6 +254,8 @@ On platforms where `make` is not available (e.g. Steam Deck's read-only OS), use
 ./scripts/dev.sh typecheck # Run type checkers
 ./scripts/dev.sh quality   # Run all quality checks
 ./scripts/dev.sh test      # Run all tests
+./scripts/dev.sh fixtures  # Generate test fixtures
+./scripts/dev.sh stop      # Kill all BalatroBot and Balatro processes
 ./scripts/dev.sh all       # Run quality checks + tests
 ```
 
