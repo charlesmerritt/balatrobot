@@ -255,6 +255,7 @@ __marimo__/
 
 # Lua Language Server
 .luarc.json
+.lua-lsp/
 
 # Compiled Lua sources
 luac.out
