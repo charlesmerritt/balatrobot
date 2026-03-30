@@ -463,14 +463,15 @@ class TestDetectDisplay:
         (x11_dir / "X0").touch()
         monkeypatch.setattr(
             "balatrobot.platforms.linux._detect_display",
-            lambda: _detect_display.__wrapped__(x11_dir)
-            if hasattr(_detect_display, "__wrapped__")
-            else None,
+            lambda: (
+                _detect_display.__wrapped__(x11_dir)
+                if hasattr(_detect_display, "__wrapped__")
+                else None
+            ),
         )
         # Test the function directly with a patched path
         import balatrobot.platforms.linux as linux_mod
 
-        original_path = Path("/tmp/.X11-unix")
         monkeypatch.setattr(
             linux_mod, "_detect_display", lambda: ":0" if x11_dir.exists() else None
         )
@@ -547,9 +548,7 @@ class TestLinuxLauncherDisplayEnv:
             "balatrobot.platforms.linux._STEAM_ROOT_CANDIDATES", [steam]
         )
         monkeypatch.delenv("DISPLAY", raising=False)
-        monkeypatch.setattr(
-            "balatrobot.platforms.linux._detect_display", lambda: ":0"
-        )
+        monkeypatch.setattr("balatrobot.platforms.linux._detect_display", lambda: ":0")
 
         launcher = LinuxLauncher()
         config = Config()
@@ -614,9 +613,7 @@ class TestLinuxLauncherDisplayEnv:
             "balatrobot.platforms.linux._STEAM_ROOT_CANDIDATES", [steam]
         )
         monkeypatch.delenv("DISPLAY", raising=False)
-        monkeypatch.setattr(
-            "balatrobot.platforms.linux._detect_display", lambda: None
-        )
+        monkeypatch.setattr("balatrobot.platforms.linux._detect_display", lambda: None)
 
         launcher = LinuxLauncher()
         config = Config()
@@ -632,9 +629,7 @@ class TestLinuxLauncherDisplayEnv:
             "balatrobot.platforms.linux._STEAM_ROOT_CANDIDATES", [steam]
         )
         monkeypatch.delenv("DISPLAY", raising=False)
-        monkeypatch.setattr(
-            "balatrobot.platforms.linux._detect_display", lambda: None
-        )
+        monkeypatch.setattr("balatrobot.platforms.linux._detect_display", lambda: None)
 
         launcher = LinuxLauncher()
         config = Config()
