@@ -74,6 +74,7 @@ Controls the game lifecycle and provides the CLI.
 - **Manager** (`manager.py`): `BalatroInstance` context manager. Starts the game process, handles logging, and waits for the API to be healthy.
 - **Config** (`config.py`): Configuration management using `dataclasses` and environment variables.
 - **Platform Abstraction** (`platforms/`): Cross-platform game launcher system with platform-specific implementations for macOS, Windows, and native Love2D.
+- **Visualizer UI** (`ui/`): `balatrobot ui` serves a web app (`ui/static/`) that recreates the game screens from live gamestate and exercises all endpoints; includes an in-browser mock engine and a `/rpc` proxy to the game server (which sends no CORS headers). See `docs/visualizer.md` and `notes/visualizer.md`. Tests: `tests/ui` (no game required).
 
 ### 2. Lua Layer (`src/lua/`)
 
