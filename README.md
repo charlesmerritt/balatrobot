@@ -35,3 +35,9 @@ This project is a fork of the original [balatrobot](https://github.com/besteon/b
 - [@giewev](https://github.com/giewev)
 
 The original repository provided the initial API and botting framework that this project has evolved from. We appreciate their work in creating the foundation for Balatro bot development.
+
+## Project Status (updated 2026-07-03)
+
+**Current work:** `feature/gamestate-visualizer` — a `balatrobot ui` web app that renders the live gamestate, learns gamestate transition graphs from real play (`gamestate_graphs/`), and replays them in a graph-backed mock mode. See `docs/visualizer.md`.
+
+**Maturity:** Mature — release automation (`release_please`, PyPI release, docs deploy), CI (code quality + commit lint), mkdocs site, CHANGELOG, LICENSE, and a real integration test suite (Lua + CLI).

@@ -108,7 +108,6 @@ screenBox.addEventListener("mouseover", (e) => {
 screenBox.addEventListener("mouseout", () => inspector.highlight(null));
 
 // Mode toggle, refresh button, polling.
-modeSelect.value = rpc.mode;
 modeSelect.addEventListener("change", () => {
   rpc.setMode(modeSelect.value);
   inspector.initConsole();
@@ -124,4 +123,11 @@ setInterval(() => {
 // bot or a browser test): window.__bbviz.ctx.call("start", {...}).
 window.__bbviz = { rpc, ctx, refresh };
 
-refresh();
+async function init() {
+  await rpc.init();
+  modeSelect.value = rpc.mode;
+  inspector.initConsole();
+  await refresh();
+}
+
+init();
