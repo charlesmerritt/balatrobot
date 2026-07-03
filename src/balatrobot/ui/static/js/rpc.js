@@ -6,16 +6,32 @@ import { MockGame } from "./mock.js";
 
 export class Rpc {
   constructor() {
-    this.mode = localStorage.getItem("bbviz-mode") ?? "mock";
+    this.mode = "live";
     this.mock = new MockGame();
     this.nextId = 1;
     this.log = [];
     this.listeners = new Set();
   }
 
+  async init() {
+    let config = { initialMode: "live", graphUrl: "/state-graph.json" };
+    try {
+      const response = await fetch("/config.json");
+      config = await response.json();
+    } catch {
+      // Older/static hosts default to live and an empty mock graph.
+    }
+    this.mode = config.initialMode ?? "live";
+    try {
+      const graphResponse = await fetch(config.graphUrl ?? "/state-graph.json");
+      this.mock.loadGraph(await graphResponse.json());
+    } catch {
+      this.mock.loadGraph(null);
+    }
+  }
+
   setMode(mode) {
     this.mode = mode;
-    localStorage.setItem("bbviz-mode", mode);
   }
 
   onLog(fn) { this.listeners.add(fn); }

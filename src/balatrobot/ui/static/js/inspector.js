@@ -16,7 +16,6 @@ export class Inspector {
 
     this.initTabs();
     this.initLog();
-    this.initConsole();
     this.initSmoke();
   }
 

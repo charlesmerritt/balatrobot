@@ -8,13 +8,21 @@ User docs: `docs/visualizer.md`.
 - `src/balatrobot/ui/server.py` — stdlib `ThreadingHTTPServer` serving
   `src/balatrobot/ui/static/` and proxying `POST /rpc` → game JSON-RPC server
   (httpx). Upstream failures become JSON-RPC error `-32099
-  UPSTREAM_UNAVAILABLE` so the app can show connection status.
+  UPSTREAM_UNAVAILABLE` so the app can show connection status. Also serves
+  `/config.json` (startup mode) and `/state-graph.json` (learned graph), and
+  records live transitions via `state_graph.py` when `record_graph=True`.
+- `src/balatrobot/ui/state_graph.py` — `StateGraphRecorder` persists observed
+  `gamestate.state` transitions (nodes = states, edges = successful RPC
+  methods that changed state) to `gamestate_graphs/state_graph.json` + `.dot`.
 - `src/balatrobot/ui/static/js/` — vanilla ES modules, no build step:
-  `mock.js` (mock game engine), `mockdata.js` (card/blind/schema tables),
-  `rpc.js` (transport + log), `app.js` (poll/route), `components.js`,
-  `inspector.js` (JSON tree/log/console/smoke tabs), `smoke.js` (endpoint
-  smoke sequence), `screens/*.js` (one module per game screen).
-- Tests: `tests/ui/test_server.py` (proxy + static serving; no game needed).
+  `mock.js` (graph-backed replay transport, not a game simulation),
+  `mockdata.js` (deck/stake constants for the setup screen only),
+  `rpc.js` (transport + log; `init()` fetches `/config.json` and the graph),
+  `app.js` (poll/route), `components.js`, `inspector.js` (JSON
+  tree/log/console/smoke tabs), `smoke.js` (endpoint smoke sequence),
+  `screens/*.js` (one module per game screen).
+- Tests: `tests/ui/test_server.py` (proxy, config/graph endpoints, recording;
+  no game needed), `tests/ui/test_state_graph.py` (recorder + DOT export).
 
 ## Discoveries (verified against source)
 
@@ -49,13 +57,26 @@ User docs: `docs/visualizer.md`.
   an unextracted zip under `~/.cache/puppeteer` — unzip before pointing
   `puppeteer-core` at it.
 
-## Mock engine fidelity notes
+## Graph-backed mock (2026-07-02 redesign)
 
-- Validation order mirrors the dispatcher: schema (`BAD_REQUEST`) → state
-  (`INVALID_STATE`) → game rules (`NOT_ALLOWED`).
-- Game math is approximate: flat/base joker effects only, all played cards
-  score, shop odds simplified, subset of jokers/tarots/planets/spectrals/
-  vouchers. Blind base chips per ante and hand base chips/mult follow the
-  real tables.
-- Smoke test: 28 steps covering all 21 endpoints; step 20 ("skip pack") is
-  expected to SKIP when the pack already closed after its single pick.
+The original in-browser mock engine simulated Balatro (hand scoring, shop,
+jokers, endpoint schemas) from hand-authored tables in `mockdata.js`. That
+invented game structure the project couldn't vouch for, so it was replaced:
+
+- **Live is the default.** `balatrobot ui` health-checks the game at startup
+  and raises `GameServerUnavailable` if nothing responds; `--mock` is an
+  explicit opt-in.
+- **Live play teaches the graph.** The `/rpc` proxy records every successful
+  response carrying `gamestate.state` (nodes = states, edges = the methods
+  that changed state; `--verbose` adds last params/results + samples per
+  edge, capped at 10). Learning only happens without `--mock`.
+- **Mock replays the graph.** `--mock` (or the top-bar toggle) loads
+  `/state-graph.json`; an empty/missing graph makes every call fail with
+  `MOCK_GRAPH_EMPTY` (-32110), and methods without a learned edge from the
+  current state fail with `MOCK_TRANSITION_UNKNOWN`. Mock gamestates are
+  minimal (`{state, mock: true, graph: {...}}`); screens tolerate this
+  because they use optional chaining throughout.
+- Graph files live in `gamestate_graphs/` (JSON + DOT + `render_svg.sh`),
+  intentionally not gitignored for now.
+- Smoke test (`smoke.js`) still targets the full endpoint surface — useful in
+  live mode; in mock mode steps fail unless their transitions were learned.
