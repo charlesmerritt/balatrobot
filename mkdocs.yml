@@ -54,6 +54,7 @@ nav:
   - Example Bot: example-bot.md
   - CLI Reference: cli.md
   - API Reference: api.md
+  - Visualizer: visualizer.md
   - Contributing: contributing.md
 markdown_extensions:
   - toc:

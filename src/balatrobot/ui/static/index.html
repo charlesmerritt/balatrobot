@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BalatroBot Visualizer</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header id="topbar">
+    <div class="brand">
+      <span class="brand-b">BALATRO</span><span class="brand-bot">BOT</span>
+      <span class="brand-sub">visualizer</span>
+    </div>
+    <div class="topbar-controls">
+      <span id="state-badge" class="state-badge" data-path="state">MENU</span>
+      <label class="mode-toggle">
+        <select id="mode-select" title="Transport mode">
+          <option value="live">Live game</option>
+          <option value="mock">Graph mock</option>
+          <option value="fixture">Fixture contract (synthetic)</option>
+        </select>
+      </label>
+      <label id="fixture-state-control" class="mode-toggle" hidden>
+        <select id="fixture-state-select" title="Synthetic gamestate fixture" aria-label="Synthetic gamestate fixture"></select>
+      </label>
+      <span id="conn-status" class="conn-status" title="Connection status">●</span>
+      <button id="refresh-btn" class="btn btn-small" title="Fetch gamestate now">↻</button>
+    </div>
+  </header>
+
+  <main id="layout">
+    <section id="screen" aria-label="Game screen"></section>
+    <aside id="inspector" aria-label="Gamestate inspector">
+      <nav id="inspector-tabs">
+        <button data-tab="gamestate" class="tab active">Gamestate</button>
+        <button data-tab="log" class="tab">Log</button>
+        <button data-tab="console" class="tab">Console</button>
+        <button data-tab="smoke" class="tab">Smoke Test</button>
+      </nav>
+      <div id="path-strip" title="Hovered gamestate path">&nbsp;</div>
+      <div id="tab-gamestate" class="tab-panel active"></div>
+      <div id="tab-log" class="tab-panel"></div>
+      <div id="tab-console" class="tab-panel"></div>
+      <div id="tab-smoke" class="tab-panel"></div>
+    </aside>
+  </main>
+
+  <div id="toasts"></div>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

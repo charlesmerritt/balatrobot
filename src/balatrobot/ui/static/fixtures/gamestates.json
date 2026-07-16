@@ -1,0 +1,196 @@
+{
+  "description": "Synthetic visualizer fixtures. These payloads exercise UI bindings but do not simulate Balatro.",
+  "states": {
+    "MENU": {
+      "state": "MENU",
+      "fixture": { "synthetic": true }
+    },
+    "BLIND_SELECT": {
+      "state": "BLIND_SELECT",
+      "fixture": { "synthetic": true },
+      "money": 8,
+      "ante_num": 1,
+      "round_num": 1,
+      "blinds": {
+        "small": {
+          "type": "SMALL",
+          "name": "Small Blind",
+          "status": "SELECT",
+          "score": 300,
+          "effect": "",
+          "tag_name": "Investment Tag",
+          "tag_effect": "After defeating the Boss Blind, gain $25"
+        },
+        "big": {
+          "type": "BIG",
+          "name": "Big Blind",
+          "status": "UPCOMING",
+          "score": 450,
+          "effect": ""
+        },
+        "boss": {
+          "type": "BOSS",
+          "name": "The Hook",
+          "status": "UPCOMING",
+          "score": 600,
+          "effect": "Discards 2 random cards per hand played"
+        }
+      }
+    },
+    "SELECTING_HAND": {
+      "state": "SELECTING_HAND",
+      "fixture": { "synthetic": true },
+      "money": 8,
+      "ante_num": 1,
+      "round_num": 1,
+      "round": {
+        "chips": 120,
+        "hands_left": 4,
+        "discards_left": 3,
+        "reroll_cost": 5
+      },
+      "blinds": {
+        "small": {
+          "type": "SMALL",
+          "name": "Small Blind",
+          "status": "CURRENT",
+          "score": 300,
+          "effect": ""
+        },
+        "big": { "type": "BIG", "name": "Big Blind", "status": "UPCOMING", "score": 450, "effect": "" },
+        "boss": { "type": "BOSS", "name": "The Hook", "status": "UPCOMING", "score": 600, "effect": "Discards 2 random cards per hand played" }
+      },
+      "cards": { "count": 44, "limit": 52, "cards": [] },
+      "hand": {
+        "count": 5,
+        "limit": 8,
+        "highlighted_limit": 5,
+        "cards": [
+          { "id": "fixture-h1", "key": "H_A", "label": "Ace of Hearts", "set": "Default", "value": { "suit": "Hearts", "rank": "A", "effect": "11 Chips" }, "modifier": {}, "state": {} },
+          { "id": "fixture-h2", "key": "S_K", "label": "King of Spades", "set": "Default", "value": { "suit": "Spades", "rank": "K", "effect": "10 Chips" }, "modifier": { "seal": "RED" }, "state": {} },
+          { "id": "fixture-h3", "key": "D_10", "label": "10 of Diamonds", "set": "Default", "value": { "suit": "Diamonds", "rank": "10", "effect": "10 Chips" }, "modifier": {}, "state": {} },
+          { "id": "fixture-h4", "key": "C_7", "label": "7 of Clubs", "set": "Default", "value": { "suit": "Clubs", "rank": "7", "effect": "7 Chips" }, "modifier": { "enhancement": "BONUS" }, "state": {} },
+          { "id": "fixture-h5", "key": "H_2", "label": "2 of Hearts", "set": "Default", "value": { "suit": "Hearts", "rank": "2", "effect": "2 Chips" }, "modifier": { "edition": "FOIL" }, "state": {} }
+        ]
+      },
+      "jokers": {
+        "count": 1,
+        "limit": 5,
+        "cards": [
+          { "id": "fixture-j1", "key": "j_joker", "label": "Joker", "set": "Joker", "value": { "effect": "+4 Mult" }, "cost": { "buy": 2, "sell": 1 } }
+        ]
+      },
+      "consumables": {
+        "count": 1,
+        "limit": 2,
+        "cards": [
+          { "id": "fixture-c1", "key": "c_magician", "label": "The Magician", "set": "Tarot", "value": { "effect": "Enhances 2 selected cards to Lucky Cards" }, "cost": { "buy": 3, "sell": 1 } }
+        ]
+      }
+    },
+    "ROUND_EVAL": {
+      "state": "ROUND_EVAL",
+      "fixture": { "synthetic": true },
+      "money": 11,
+      "ante_num": 1,
+      "round_num": 1,
+      "round": { "chips": 420, "hands_left": 2, "discards_left": 1 },
+      "cards": { "count": 44, "limit": 52, "cards": [] },
+      "jokers": { "count": 0, "limit": 5, "cards": [] },
+      "consumables": { "count": 0, "limit": 2, "cards": [] },
+      "blinds": {
+        "small": { "type": "SMALL", "name": "Small Blind", "status": "DEFEATED", "score": 300, "effect": "" },
+        "big": { "type": "BIG", "name": "Big Blind", "status": "UPCOMING", "score": 450, "effect": "" },
+        "boss": { "type": "BOSS", "name": "The Hook", "status": "UPCOMING", "score": 600, "effect": "Discards 2 random cards per hand played" }
+      }
+    },
+    "SHOP": {
+      "state": "SHOP",
+      "fixture": { "synthetic": true },
+      "money": 11,
+      "ante_num": 1,
+      "round_num": 2,
+      "round": { "chips": 0, "hands_left": 4, "discards_left": 3, "reroll_cost": 5 },
+      "cards": { "count": 44, "limit": 52, "cards": [] },
+      "jokers": {
+        "count": 1,
+        "limit": 5,
+        "cards": [
+          { "id": "fixture-j1", "key": "j_joker", "label": "Joker", "set": "Joker", "value": { "effect": "+4 Mult" }, "cost": { "buy": 2, "sell": 1 } }
+        ]
+      },
+      "consumables": { "count": 0, "limit": 2, "cards": [] },
+      "shop": {
+        "count": 2,
+        "limit": 2,
+        "cards": [
+          { "id": "fixture-s1", "key": "j_banner", "label": "Banner", "set": "Joker", "value": { "effect": "+30 Chips for each remaining discard" }, "cost": { "buy": 5, "sell": 2 } },
+          { "id": "fixture-s2", "key": "c_empress", "label": "The Empress", "set": "Tarot", "value": { "effect": "Enhances 2 selected cards to Mult Cards" }, "cost": { "buy": 3, "sell": 1 } }
+        ]
+      },
+      "vouchers": {
+        "count": 1,
+        "limit": 1,
+        "cards": [
+          { "id": "fixture-v1", "key": "v_overstock_norm", "label": "Overstock", "set": "Voucher", "value": { "effect": "+1 card slot available in shop" }, "cost": { "buy": 10, "sell": 0 } }
+        ]
+      },
+      "packs": {
+        "count": 2,
+        "limit": 2,
+        "cards": [
+          { "id": "fixture-p1", "key": "p_arcana_normal_1", "label": "Arcana Pack", "set": "Booster", "value": { "effect": "Choose 1 of up to 3 Tarot cards" }, "cost": { "buy": 4, "sell": 0 } },
+          { "id": "fixture-p2", "key": "p_buffoon_normal_1", "label": "Buffoon Pack", "set": "Booster", "value": { "effect": "Choose 1 of up to 2 Joker cards" }, "cost": { "buy": 4, "sell": 0 } }
+        ]
+      },
+      "blinds": {
+        "small": { "type": "SMALL", "name": "Small Blind", "status": "DEFEATED", "score": 300, "effect": "" },
+        "big": { "type": "BIG", "name": "Big Blind", "status": "UPCOMING", "score": 450, "effect": "" },
+        "boss": { "type": "BOSS", "name": "The Hook", "status": "UPCOMING", "score": 600, "effect": "Discards 2 random cards per hand played" }
+      }
+    },
+    "SMODS_BOOSTER_OPENED": {
+      "state": "SMODS_BOOSTER_OPENED",
+      "fixture": { "synthetic": true },
+      "money": 7,
+      "ante_num": 1,
+      "round_num": 2,
+      "round": { "chips": 0, "hands_left": 4, "discards_left": 3 },
+      "cards": { "count": 44, "limit": 52, "cards": [] },
+      "jokers": { "count": 1, "limit": 5, "cards": [] },
+      "consumables": { "count": 0, "limit": 2, "cards": [] },
+      "blinds": {
+        "small": { "type": "SMALL", "name": "Small Blind", "status": "DEFEATED", "score": 300, "effect": "" },
+        "big": { "type": "BIG", "name": "Big Blind", "status": "UPCOMING", "score": 450, "effect": "" },
+        "boss": { "type": "BOSS", "name": "The Hook", "status": "UPCOMING", "score": 600, "effect": "Discards 2 random cards per hand played" }
+      },
+      "pack": {
+        "count": 3,
+        "limit": 3,
+        "cards": [
+          { "id": "fixture-pc1", "key": "c_magician", "label": "The Magician", "set": "Tarot", "value": { "effect": "Enhances 2 selected cards to Lucky Cards" }, "cost": { "buy": 0, "sell": 1 } },
+          { "id": "fixture-pc2", "key": "c_high_priestess", "label": "The High Priestess", "set": "Tarot", "value": { "effect": "Creates up to 2 random Planet cards" }, "cost": { "buy": 0, "sell": 1 } },
+          { "id": "fixture-pc3", "key": "c_empress", "label": "The Empress", "set": "Tarot", "value": { "effect": "Enhances 2 selected cards to Mult Cards" }, "cost": { "buy": 0, "sell": 1 } }
+        ]
+      },
+      "hand": {
+        "count": 3,
+        "limit": 8,
+        "highlighted_limit": 5,
+        "cards": [
+          { "id": "fixture-ph1", "key": "H_A", "label": "Ace of Hearts", "set": "Default", "value": { "suit": "Hearts", "rank": "A", "effect": "11 Chips" }, "modifier": {}, "state": {} },
+          { "id": "fixture-ph2", "key": "S_K", "label": "King of Spades", "set": "Default", "value": { "suit": "Spades", "rank": "K", "effect": "10 Chips" }, "modifier": {}, "state": {} },
+          { "id": "fixture-ph3", "key": "D_10", "label": "10 of Diamonds", "set": "Default", "value": { "suit": "Diamonds", "rank": "10", "effect": "10 Chips" }, "modifier": {}, "state": {} }
+        ]
+      }
+    },
+    "GAME_OVER": {
+      "state": "GAME_OVER",
+      "fixture": { "synthetic": true },
+      "won": false,
+      "money": 6,
+      "ante_num": 4,
+      "round_num": 12
+    }
+  }
+}

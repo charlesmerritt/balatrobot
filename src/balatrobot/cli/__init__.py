@@ -4,6 +4,7 @@ import typer
 
 from balatrobot.cli.api import api
 from balatrobot.cli.serve import serve
+from balatrobot.cli.ui import ui
 
 app = typer.Typer(
     name="balatrobot",
@@ -14,6 +15,7 @@ app = typer.Typer(
 # Register commands
 app.command()(serve)
 app.command()(api)
+app.command()(ui)
 
 
 def main() -> None:

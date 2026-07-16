@@ -38,8 +38,10 @@ jobs:
           uv sync --group dev
 
       - name: Validate commits
+        env:
+          BASE_REF: ${{ github.base_ref || 'main' }}
         run: |
-          uv run cz check --rev-range origin/${{ github.base_ref }}..HEAD
+          uv run cz check --rev-range origin/${{ env.BASE_REF }}..HEAD
 
       - name: Validate PR title
         if: github.event_name == 'pull_request'
