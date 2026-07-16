@@ -16,9 +16,13 @@
       <span id="state-badge" class="state-badge" data-path="state">MENU</span>
       <label class="mode-toggle">
         <select id="mode-select" title="Transport mode">
-          <option value="mock">Mock engine</option>
           <option value="live">Live game</option>
+          <option value="mock">Graph mock</option>
+          <option value="fixture">Fixture contract (synthetic)</option>
         </select>
+      </label>
+      <label id="fixture-state-control" class="mode-toggle" hidden>
+        <select id="fixture-state-select" title="Synthetic gamestate fixture" aria-label="Synthetic gamestate fixture"></select>
       </label>
       <span id="conn-status" class="conn-status" title="Connection status">●</span>
       <button id="refresh-btn" class="btn btn-small" title="Fetch gamestate now">↻</button>

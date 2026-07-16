@@ -200,6 +200,7 @@ export class Inspector {
   // ---- smoke test ----------------------------------------------------------
 
   initSmoke() {
+    const fixtureMode = this.rpc.mode === "fixture";
     const table = el("table", { class: "smoke-table" },
       SMOKE_STEPS.map((step, i) => el("tr", { id: `smoke-row-${i}` },
         el("td", {}, String(i + 1)),
@@ -207,9 +208,13 @@ export class Inspector {
         el("td", { class: "smoke-status muted" }, "—"),
       )),
     );
-    const summary = el("div", { class: "smoke-summary" }, "Exercises every endpoint in a full game loop.");
+    const summary = el("div", { class: "smoke-summary" },
+      fixtureMode
+        ? "Fixture mode validates individual calls in the Console tab."
+        : "Exercises every endpoint in a full game loop.");
     const button = el("button", {
       class: "btn btn-red",
+      disabled: fixtureMode ? "" : undefined,
       onclick: async () => {
         button.disabled = true;
         summary.textContent = "Running…";
@@ -226,8 +231,9 @@ export class Inspector {
     }, "Run Smoke Test");
     this.smokeBox.replaceChildren(
       el("div", { class: "param-hint" },
-        "Runs a scripted sequence through every endpoint (menu → start → blinds → play → shop → pack → …). ",
-        "In live mode this drives the real game."),
+        fixtureMode
+          ? "Synthetic fixtures do not simulate state transitions; use Console to validate endpoint request shapes."
+          : "Runs a scripted sequence through every endpoint (menu → start → blinds → play → shop → pack → …). In live mode this drives the real game."),
       el("div", { class: "actions" }, button),
       summary,
       table,

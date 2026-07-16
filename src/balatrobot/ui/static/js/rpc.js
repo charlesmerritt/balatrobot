@@ -1,6 +1,6 @@
-// JSON-RPC transport: "live" posts to the /rpc proxy, "mock" runs the
-// in-browser engine. Every call is recorded in a log that inspector views
-// subscribe to.
+// JSON-RPC transports: "live" posts to the game proxy, "mock" runs the
+// learned graph in-browser, and "fixture" calls the offline contract fixture.
+// Every call is recorded in a log that inspector views subscribe to.
 
 import { MockGame } from "./mock.js";
 
@@ -8,6 +8,8 @@ export class Rpc {
   constructor() {
     this.mode = "live";
     this.mock = new MockGame();
+    this.fixtureStates = [];
+    this.fixtureState = "MENU";
     this.nextId = 1;
     this.log = [];
     this.listeners = new Set();
@@ -28,10 +30,24 @@ export class Rpc {
     } catch {
       this.mock.loadGraph(null);
     }
+    try {
+      const fixtureResponse = await fetch("/fixtures/gamestates.json");
+      const fixtureDocument = await fixtureResponse.json();
+      this.fixtureStates = Object.keys(fixtureDocument.states ?? {});
+      this.fixtureState = this.fixtureStates.includes("MENU")
+        ? "MENU"
+        : this.fixtureStates[0];
+    } catch {
+      this.fixtureStates = [];
+    }
   }
 
   setMode(mode) {
     this.mode = mode;
+  }
+
+  setFixtureState(state) {
+    if (this.fixtureStates.includes(state)) this.fixtureState = state;
   }
 
   onLog(fn) { this.listeners.add(fn); }
@@ -51,7 +67,9 @@ export class Rpc {
     try {
       const result = this.mode === "mock"
         ? await this.callMock(method, params)
-        : await this.callLive(method, params);
+        : this.mode === "fixture"
+          ? await this.callFixture(method, params)
+          : await this.callLive(method, params);
       entry.result = result;
       entry.ms = Math.round(performance.now() - started);
       if (!silent) this.record(entry);
@@ -70,10 +88,20 @@ export class Rpc {
     return this.mock.call(method, params);
   }
 
+  async callFixture(method, params) {
+    return this.callHttp("/fixture-rpc", method, params, {
+      "X-Balatrobot-Fixture-State": this.fixtureState,
+    });
+  }
+
   async callLive(method, params) {
-    const response = await fetch("/rpc", {
+    return this.callHttp("/rpc", method, params);
+  }
+
+  async callHttp(endpoint, method, params, headers = {}) {
+    const response = await fetch(endpoint, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...headers },
       body: JSON.stringify({ jsonrpc: "2.0", method, params, id: this.nextId++ }),
     });
     const data = await response.json();

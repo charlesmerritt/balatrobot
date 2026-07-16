@@ -16,6 +16,7 @@ from urllib.parse import urlparse
 
 import httpx
 
+from balatrobot.ui.fixture_api import FixtureApi
 from balatrobot.ui.state_graph import DEFAULT_GRAPH_PATH, StateGraphRecorder
 
 STATIC_DIR = Path(__file__).parent / "static"
@@ -79,12 +80,14 @@ class UIRequestHandler(SimpleHTTPRequestHandler):
         game_url: str,
         initial_mode: str,
         state_graph: StateGraphRecorder,
+        fixture_api: FixtureApi,
         record_graph: bool,
         **kwargs: Any,
     ) -> None:
         self.game_url = game_url
         self.initial_mode = initial_mode
         self.state_graph = state_graph
+        self.fixture_api = fixture_api
         self.record_graph = record_graph
         super().__init__(*args, directory=str(STATIC_DIR), **kwargs)
 
@@ -104,25 +107,31 @@ class UIRequestHandler(SimpleHTTPRequestHandler):
         super().do_GET()
 
     def do_POST(self) -> None:
-        if self.path != "/rpc":
-            self.send_error(404, "POST only supported on /rpc")
+        if self.path not in {"/rpc", "/fixture-rpc"}:
+            self.send_error(404, "POST only supported on /rpc and /fixture-rpc")
             return
         length = int(self.headers.get("Content-Length", 0))
         if length > MAX_BODY_SIZE:
             self.send_error(413, "Request body too large")
             return
         body = self.rfile.read(length)
-        try:
-            with httpx.Client(timeout=PROXY_TIMEOUT) as client:
-                response = client.post(
-                    self.game_url,
-                    content=body,
-                    headers={"Content-Type": "application/json"},
-                )
-            payload = response.content
-            self._record_live_response(body, payload)
-        except httpx.HTTPError as e:
-            payload = json.dumps(upstream_error(body, str(e))).encode()
+        if self.path == "/fixture-rpc":
+            fixture_response = self.fixture_api.dispatch(
+                body, self.headers.get("X-Balatrobot-Fixture-State")
+            )
+            payload = json.dumps(fixture_response).encode()
+        else:
+            try:
+                with httpx.Client(timeout=PROXY_TIMEOUT) as client:
+                    upstream_response = client.post(
+                        self.game_url,
+                        content=body,
+                        headers={"Content-Type": "application/json"},
+                    )
+                payload = upstream_response.content
+                self._record_live_response(body, payload)
+            except httpx.HTTPError as e:
+                payload = json.dumps(upstream_error(body, str(e))).encode()
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(payload)))
@@ -178,11 +187,13 @@ class UIServer:
         self.game_url = game_url(game_host, game_port)
         self.initial_mode = initial_mode
         self.state_graph = StateGraphRecorder(graph_path, verbose=verbose_graph)
+        self.fixture_api = FixtureApi()
         handler = partial(
             UIRequestHandler,
             game_url=self.game_url,
             initial_mode=initial_mode,
             state_graph=self.state_graph,
+            fixture_api=self.fixture_api,
             record_graph=record_graph,
         )
         self._httpd = ThreadingHTTPServer((host, port), handler)

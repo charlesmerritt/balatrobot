@@ -26,6 +26,13 @@ def ui(
             help="Use graph-backed mock mode and do not require a live game",
         ),
     ] = False,
+    fixture: Annotated[
+        bool,
+        typer.Option(
+            "--fixture/--no-fixture",
+            help="Use synthetic contract fixtures and do not require a live game",
+        ),
+    ] = False,
     graph: Annotated[
         Path,
         typer.Option(help="Gamestate transition graph JSON path"),
@@ -43,22 +50,26 @@ def ui(
     ] = 5.0,
     # fmt: on
 ) -> None:
-    """Serve the gamestate visualizer (live proxy + graph-backed mock mode)."""
+    """Serve the gamestate visualizer in live, graph mock, or fixture mode."""
+    if mock and fixture:
+        raise typer.BadParameter("--mock and --fixture cannot be used together")
+
+    mode = "fixture" if fixture else "mock" if mock else "live"
     upstream = game_url(game_host, game_port)
-    if not mock:
+    if mode == "live":
         assert_game_reachable(upstream, timeout=health_timeout)
     server = UIServer(
         host=host,
         port=port,
         game_host=game_host,
         game_port=game_port,
-        initial_mode="mock" if mock else "live",
+        initial_mode=mode,
         graph_path=graph,
-        record_graph=not mock,
+        record_graph=mode == "live",
         verbose_graph=verbose,
     )
     typer.echo(f"Visualizer running at {server.url} (game: {server.game_url})")
-    typer.echo(f"Mode: {'mock' if mock else 'live'}; graph: {graph}")
+    typer.echo(f"Mode: {mode}; graph: {graph}")
     typer.echo("Press Ctrl+C to stop.")
     if open_browser:
         webbrowser.open(server.url)

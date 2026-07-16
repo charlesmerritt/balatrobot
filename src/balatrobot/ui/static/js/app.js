@@ -30,6 +30,8 @@ const screenBox = document.getElementById("screen");
 const stateBadge = document.getElementById("state-badge");
 const connStatus = document.getElementById("conn-status");
 const modeSelect = document.getElementById("mode-select");
+const fixtureStateControl = document.getElementById("fixture-state-control");
+const fixtureStateSelect = document.getElementById("fixture-state-select");
 
 let lastGs = { state: "MENU", round_num: 0, ante_num: 0, money: 0 };
 let lastHandIds = "";
@@ -66,10 +68,14 @@ async function refresh() {
   try {
     lastGs = await rpc.call("gamestate", {}, { silent: true });
     connStatus.className = "conn-status ok";
-    connStatus.title = rpc.mode === "mock" ? "Mock engine" : "Connected to game server";
+    connStatus.title = rpc.mode === "mock"
+      ? "Learned graph mock"
+      : rpc.mode === "fixture"
+        ? "Synthetic fixture contract: no game connected"
+        : "Connected to game server";
   } catch (e) {
     connStatus.className = "conn-status bad";
-    connStatus.title = `Cannot reach game server: ${e.rpc?.message ?? e.message}`;
+    connStatus.title = `Transport error: ${e.rpc?.message ?? e.message}`;
     render();
     return;
   }
@@ -107,10 +113,20 @@ screenBox.addEventListener("mouseover", (e) => {
 });
 screenBox.addEventListener("mouseout", () => inspector.highlight(null));
 
-// Mode toggle, refresh button, polling.
+// Mode toggle, fixture picker, refresh button, polling.
+function updateModeControls() {
+  fixtureStateControl.hidden = rpc.mode !== "fixture";
+}
+
 modeSelect.addEventListener("change", () => {
   rpc.setMode(modeSelect.value);
+  updateModeControls();
   inspector.initConsole();
+  inspector.initSmoke();
+  refresh();
+});
+fixtureStateSelect.addEventListener("change", () => {
+  rpc.setFixtureState(fixtureStateSelect.value);
   refresh();
 });
 document.getElementById("refresh-btn").addEventListener("click", refresh);
@@ -126,6 +142,11 @@ window.__bbviz = { rpc, ctx, refresh };
 async function init() {
   await rpc.init();
   modeSelect.value = rpc.mode;
+  fixtureStateSelect.replaceChildren(
+    rpc.fixtureStates.map((state) => el("option", { value: state }, state)),
+  );
+  fixtureStateSelect.value = rpc.fixtureState;
+  updateModeControls();
   inspector.initConsole();
   await refresh();
 }

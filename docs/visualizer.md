@@ -20,6 +20,9 @@ uvx balatrobot ui --game-port 22222
 
 # Replay a previously learned gamestate graph without a game
 uvx balatrobot ui --mock
+
+# Inspect every screen and validate API request shapes using synthetic fixtures
+uvx balatrobot ui --fixture --open
 ```
 
 Transport modes (top bar):
@@ -33,6 +36,25 @@ Transport modes (top bar):
     Balatro simulation: with no learned graph every call fails with
     `MOCK_GRAPH_EMPTY`, and only transitions recorded from live play are
     available (`MOCK_TRANSITION_UNKNOWN` otherwise).
+- **Fixture contract** (`--fixture`): an offline JSON-RPC endpoint backed by
+    deterministic synthetic gamestates for every visualized screen. Use the
+    fixture-state selector in the top bar to inspect screens, and the Console
+    tab to validate method names and parameter shapes against the packaged
+    OpenRPC contract. Calls do not mutate fixtures or simulate game rules.
+
+## Fixture contract mode
+
+Fixture mode sends calls to the local `/fixture-rpc` endpoint instead of a
+Balatro process. It validates required and unknown parameters, primitive and
+array types, minimums, and OpenRPC `enum`/`const`/`oneOf` constraints. Successful
+gamestate-returning methods return the currently selected fixture unchanged,
+with `fixture.synthetic: true` and the last method name.
+
+The packaged fixture contract is kept in sync with
+`src/lua/utils/openrpc.json`. Fixture mode tests the visualizer's JSON-RPC
+integration and API contract; it does **not** verify the Lua endpoint
+implementation or Balatro behavior. The full-loop Smoke Test is therefore
+disabled in fixture mode—use the Console tab to exercise individual methods.
 
 ## Learned gamestate graphs
 
@@ -69,10 +91,11 @@ gameplay rather than hand-authored guesses.
 - **Log tab**: every JSON-RPC request/response with timing and error names.
 - **Console tab**: form-based caller for any endpoint; the method list and
     parameters come from `rpc.discover` (in mock mode, only learned methods
-    are listed).
+    are listed; in fixture mode, the packaged OpenRPC contract is used).
 - **Smoke Test tab**: a scripted sequence that walks a full game loop and
     exercises every endpoint, reporting pass/fail per step. Meant for live
-    mode; in mock mode steps fail unless their transitions have been learned.
+    mode; in mock mode steps fail unless their transitions have been learned,
+    and in fixture mode it is disabled because fixtures do not transition.
 
 ## Scripting hook
 
@@ -84,5 +107,7 @@ the browser console or automation tooling and re-renders after each call.
 - The graph mock replays observed state transitions only. It returns minimal
     gamestates (`state` plus graph metadata), so screens render their structure
     but not full card data.
+- Fixture payloads are synthetic examples for UI inspection, not captured
+    Balatro output and not evidence that an endpoint works in-game.
 - The visualizer server binds to localhost by default; it is a development
     tool and has no authentication.

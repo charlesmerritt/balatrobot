@@ -97,6 +97,20 @@ class TestUIServer:
         assert data["result"] == {"state": "MENU"}
         assert data["id"] == 7
 
+    def test_fixture_rpc_returns_selected_fixture_without_game(
+        self, ui_server: UIServer
+    ):
+        """POST /fixture-rpc validates calls and returns synthetic state."""
+        response = httpx.post(
+            f"{ui_server.url}/fixture-rpc",
+            json={"jsonrpc": "2.0", "method": "gamestate", "params": {}, "id": 9},
+            headers={"X-Balatrobot-Fixture-State": "SHOP"},
+        )
+
+        assert response.status_code == 200
+        assert response.json()["result"]["state"] == "SHOP"
+        assert response.json()["result"]["fixture"]["synthetic"] is True
+
     def test_post_outside_rpc_rejected(self, ui_server: UIServer):
         """POST to any other path is a 404."""
         response = httpx.post(f"{ui_server.url}/", json={})
@@ -132,19 +146,22 @@ class TestStateGraph:
         config = httpx.get(f"{ui_server.url}/config.json").json()
         assert config == {"initialMode": "live", "graphUrl": "/state-graph.json"}
 
-    def test_config_reports_mock_mode(self, stub_game: int, tmp_path: Path):
-        """A server started for mock mode reports it to the browser."""
+    @pytest.mark.parametrize("mode", ["mock", "fixture"])
+    def test_config_reports_offline_mode(
+        self, mode: str, stub_game: int, tmp_path: Path
+    ):
+        """A server started in an offline mode reports it to the browser."""
         server = UIServer(
             port=0,
             game_port=stub_game,
-            initial_mode="mock",
+            initial_mode=mode,
             graph_path=tmp_path / "state_graph.json",
             record_graph=False,
         )
         server.start()
         try:
             config = httpx.get(f"{server.url}/config.json").json()
-            assert config["initialMode"] == "mock"
+            assert config["initialMode"] == mode
         finally:
             server.stop()
 

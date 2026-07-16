@@ -116,8 +116,8 @@ On error, prints `Error: NAME - message` to stderr (exit code 1).
 ## ui Command
 
 Serve the [gamestate visualizer](visualizer.md): a web app that recreates the
-game's screens from live gamestate and exercises API endpoints (with a mock
-mode that needs no running game).
+game's screens from live gamestate and exercises API endpoints. Graph mock and
+synthetic fixture modes need no running game.
 
 ```bash
 uvx balatrobot ui [OPTIONS]
@@ -125,13 +125,18 @@ uvx balatrobot ui [OPTIONS]
 
 ### Options
 
-| CLI Flag                | Default     | Description                    |
-| ----------------------- | ----------- | ------------------------------ |
-| `--host HOST`           | `127.0.0.1` | UI server hostname             |
-| `--port PORT`           | `12348`     | UI server port                 |
-| `--game-host GAME_HOST` | `127.0.0.1` | Game server hostname (proxied) |
-| `--game-port GAME_PORT` | `12346`     | Game server port (proxied)     |
-| `--open / --no-open`    | `--no-open` | Open the UI in a browser       |
+| CLI Flag                   | Default                             | Description                     |
+| -------------------------- | ----------------------------------- | ------------------------------- |
+| `--host HOST`              | `127.0.0.1`                         | UI server hostname              |
+| `--port PORT`              | `12348`                             | UI server port                  |
+| `--game-host GAME_HOST`    | `127.0.0.1`                         | Game server hostname (proxied)  |
+| `--game-port GAME_PORT`    | `12346`                             | Game server port (proxied)      |
+| `--open / --no-open`       | `--no-open`                         | Open the UI in a browser        |
+| `--mock / --no-mock`       | `--no-mock`                         | Replay a learned state graph    |
+| `--fixture / --no-fixture` | `--no-fixture`                      | Use synthetic contract fixtures |
+| `--graph PATH`             | `gamestate_graphs/state_graph.json` | Graph path                      |
+| `--verbose / --compact`    | `--compact`                         | Record graph payload samples    |
+| `--health-timeout FLOAT`   | `5.0`                               | Live game health-check timeout  |
 
 ## Examples
 
