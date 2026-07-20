@@ -37,7 +37,7 @@
     {
       "name": "add",
       "summary": "Add a new card to the game",
-      "description": "Add a new card to the game (joker, consumable, voucher, or playing card). Playing cards use SUIT_RANK format (e.g., H_A for Ace of Hearts).",
+      "description": "Add a new card to the game (joker, consumable, voucher, tag, or playing card). Playing cards use SUIT_RANK format (e.g., H_A for Ace of Hearts).",
       "tags": [
         {
           "$ref": "#/components/tags/cards"
@@ -46,7 +46,7 @@
       "params": [
         {
           "name": "key",
-          "description": "Card key. Format: jokers (j_*), consumables (c_*), vouchers (v_*), or playing cards (SUIT_RANK like H_A, D_K, C_2, S_T)",
+          "description": "Card key. Format: jokers (j_*), consumables (c_*), vouchers (v_*), tags (tag_*), or playing cards (SUIT_RANK like H_A, D_K, C_2, S_T)",
           "required": true,
           "schema": {
             "$ref": "#/components/schemas/CardKey"
@@ -938,6 +938,13 @@
               }
             }
           },
+          "tags": {
+            "type": "array",
+            "description": "Tags owned by the player, in acquisition order (earned by skipping blinds)",
+            "items": {
+              "$ref": "#/components/schemas/Tag"
+            }
+          },
           "jokers": {
             "$ref": "#/components/schemas/Area",
             "description": "Jokers area"
@@ -1090,6 +1097,28 @@
           "name",
           "effect",
           "score"
+        ]
+      },
+      "Tag": {
+        "type": "object",
+        "description": "A tag owned by the player",
+        "properties": {
+          "key": {
+            "$ref": "#/components/schemas/TagKey"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the tag (e.g., 'Double Tag')"
+          },
+          "effect": {
+            "type": "string",
+            "description": "Description of the tag's effect"
+          }
+        },
+        "required": [
+          "key",
+          "name",
+          "effect"
         ]
       },
       "Area": {
@@ -2847,6 +2876,107 @@
           }
         ]
       },
+      "TagKey": {
+        "description": "Tag key",
+        "oneOf": [
+          {
+            "const": "tag_uncommon",
+            "description": "Uncommon Tag: Shop has a free Uncommon Joker"
+          },
+          {
+            "const": "tag_rare",
+            "description": "Rare Tag: Shop has a free Rare Joker"
+          },
+          {
+            "const": "tag_negative",
+            "description": "Negative Tag: Next base edition shop Joker is free and becomes Negative"
+          },
+          {
+            "const": "tag_foil",
+            "description": "Foil Tag: Next base edition shop Joker is free and becomes Foil"
+          },
+          {
+            "const": "tag_holo",
+            "description": "Holographic Tag: Next base edition shop Joker is free and becomes Holographic"
+          },
+          {
+            "const": "tag_polychrome",
+            "description": "Polychrome Tag: Next base edition shop Joker is free and becomes Polychrome"
+          },
+          {
+            "const": "tag_investment",
+            "description": "Investment Tag: After defeating the Boss Blind, gain $25"
+          },
+          {
+            "const": "tag_voucher",
+            "description": "Voucher Tag: Adds one Voucher to the next shop"
+          },
+          {
+            "const": "tag_boss",
+            "description": "Boss Tag: Rerolls the Boss Blind"
+          },
+          {
+            "const": "tag_standard",
+            "description": "Standard Tag: Gives a free Mega Standard Pack"
+          },
+          {
+            "const": "tag_charm",
+            "description": "Charm Tag: Gives a free Mega Arcana Pack"
+          },
+          {
+            "const": "tag_meteor",
+            "description": "Meteor Tag: Gives a free Mega Celestial Pack"
+          },
+          {
+            "const": "tag_buffoon",
+            "description": "Buffoon Tag: Gives a free Mega Buffoon Pack"
+          },
+          {
+            "const": "tag_handy",
+            "description": "Handy Tag: Gives $1 per played hand this run"
+          },
+          {
+            "const": "tag_garbage",
+            "description": "Garbage Tag: Gives $1 per unused discard this run"
+          },
+          {
+            "const": "tag_ethereal",
+            "description": "Ethereal Tag: Gives a free Spectral Pack"
+          },
+          {
+            "const": "tag_coupon",
+            "description": "Coupon Tag: Initial cards and booster packs in next shop are free"
+          },
+          {
+            "const": "tag_double",
+            "description": "Double Tag: Gives a copy of the next selected Tag"
+          },
+          {
+            "const": "tag_juggle",
+            "description": "Juggle Tag: +3 hand size next round"
+          },
+          {
+            "const": "tag_d_six",
+            "description": "D6 Tag: Rerolls in next shop start at $0"
+          },
+          {
+            "const": "tag_top_up",
+            "description": "Top-up Tag: Create up to 2 Common Jokers"
+          },
+          {
+            "const": "tag_speed",
+            "description": "Speed Tag: Gives $5 per skipped Blind this run"
+          },
+          {
+            "const": "tag_orbital",
+            "description": "Orbital Tag: Upgrade a random poker hand by 3 levels"
+          },
+          {
+            "const": "tag_economy",
+            "description": "Economy Tag: Doubles your money (Max of $40)"
+          }
+        ]
+      },
       "ConsumableKey": {
         "description": "Consumable card key (Tarot, Planet, or Spectral)",
         "oneOf": [
@@ -2862,7 +2992,7 @@
         ]
       },
       "CardKey": {
-        "description": "Card key for the add endpoint. Supports jokers (j_*), consumables (c_*), vouchers (v_*), or playing cards (SUIT_RANK)",
+        "description": "Card key for the add endpoint. Supports jokers (j_*), consumables (c_*), vouchers (v_*), tags (tag_*), or playing cards (SUIT_RANK)",
         "oneOf": [
           {
             "$ref": "#/components/schemas/JokerKey"
@@ -2875,6 +3005,9 @@
           },
           {
             "$ref": "#/components/schemas/PlayingCardKey"
+          },
+          {
+            "$ref": "#/components/schemas/TagKey"
           }
         ]
       }

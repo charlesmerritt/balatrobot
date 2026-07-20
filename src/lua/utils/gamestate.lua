@@ -517,8 +517,9 @@ end
 
 ---Gets tag information using localize function (same approach as Tag:set_text)
 ---@param tag_key string The tag key from G.P_TAGS
+---@param tag table? Owned Tag instance for instance-specific loc vars (e.g. orbital hand)
 ---@return table tag_info {name: string, effect: string}
-local function get_tag_info(tag_key)
+local function get_tag_info(tag_key, tag)
   local result = { name = "", effect = "" }
 
   if not tag_key or not G.P_TAGS or not G.P_TAGS[tag_key] then
@@ -554,7 +555,8 @@ local function get_tag_info(tag_key)
     local skips = (G.GAME and G.GAME.skips) or 0
     loc_vars = { skip_bonus, skip_bonus * (skips + 1) }
   elseif name == "Orbital Tag" then
-    local orbital_hand = "Poker Hand" -- Default placeholder
+    -- Owned Orbital Tags know which poker hand they upgrade
+    local orbital_hand = (tag and tag.ability and tag.ability.orbital_hand) or "Poker Hand"
     local levels = tag_data.config and tag_data.config.levels or 0
     loc_vars = { orbital_hand, levels }
   elseif name == "Economy Tag" then
@@ -712,6 +714,31 @@ function gamestate.get_blinds_info()
 end
 
 -- ==========================================================================
+-- Owned Tags Extractor
+-- ==========================================================================
+
+---Extracts the tags currently owned by the player (earned by skipping blinds)
+---@return Tag[] tags Array of owned tags in acquisition order
+local function extract_tags()
+  local tags = {}
+
+  if not G.GAME or not G.GAME.tags then
+    return tags
+  end
+
+  for i, tag in ipairs(G.GAME.tags) do
+    local tag_info = get_tag_info(tag.key, tag)
+    tags[i] = {
+      key = tag.key or "",
+      name = tag_info.name,
+      effect = tag_info.effect,
+    }
+  end
+
+  return tags
+end
+
+-- ==========================================================================
 -- Main Gamestate Extractor
 -- ==========================================================================
 
@@ -777,6 +804,9 @@ function gamestate.get_gamestate()
 
     -- Blinds info
     state_data.blinds = gamestate.get_blinds_info()
+
+    -- Owned tags (earned by skipping blinds)
+    state_data.tags = extract_tags()
   end
 
   -- Always available areas

@@ -216,6 +216,45 @@ class TestGamestateBlinds:
         assert gamestate["blinds"]["boss"]["status"] == "UPCOMING"
 
 
+class TestGamestateTags:
+    """Test gamestate owned tags extraction."""
+
+    def test_tags_empty_at_run_start(self, client: httpx.Client) -> None:
+        """Test that a fresh run has no owned tags."""
+        fixture_name = "state-BLIND_SELECT--round_num-0--deck-RED--stake-WHITE"
+        gamestate = load_fixture(client, "gamestate", fixture_name)
+        assert gamestate["tags"] == []
+
+    def test_tags_one_skip_extraction(self, client: httpx.Client) -> None:
+        """Test that the tag earned by skipping the Small blind is extracted."""
+        fixture_name = "state-BLIND_SELECT--round_num-0--deck-RED--stake-WHITE"
+        load_fixture(client, "gamestate", fixture_name)
+        gamestate = api(client, "skip", {})["result"]
+        assert gamestate["tags"] == [
+            {
+                "key": "tag_polychrome",
+                "name": "Polychrome Tag",
+                "effect": "Next base edition shop Joker is free and becomes Polychrome",
+            }
+        ]
+
+    def test_tags_two_skip_extraction(self, client: httpx.Client) -> None:
+        """Test that tags from two skips are extracted in acquisition order."""
+        fixture_name = "state-BLIND_SELECT--round_num-0--deck-RED--stake-WHITE"
+        load_fixture(client, "gamestate", fixture_name)
+        api(client, "skip", {})
+        api(client, "skip", {})
+        gamestate = api(client, "gamestate", {})["result"]
+        assert [tag["key"] for tag in gamestate["tags"]] == [
+            "tag_polychrome",
+            "tag_investment",
+        ]
+        assert [tag["name"] for tag in gamestate["tags"]] == [
+            "Polychrome Tag",
+            "Investment Tag",
+        ]
+
+
 class TestGamestateAreas:
     """Test gamestate areas extraction."""
 

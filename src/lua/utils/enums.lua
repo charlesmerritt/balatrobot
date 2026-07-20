@@ -360,6 +360,32 @@
 ---| "p_buffoon_jumbo_1" # Jumbo Buffoon Pack: Choose 1 of 4 Joker Cards.
 ---| "p_buffoon_mega_1" # Mega Buffoon Pack: Choose up to 2 of 4 Joker Cards.
 
+---@alias Card.Key.Tag
+---| "tag_uncommon" # Uncommon Tag: Shop has a free Uncommon Joker
+---| "tag_rare" # Rare Tag: Shop has a free Rare Joker
+---| "tag_negative" # Negative Tag: Next base edition shop Joker is free and becomes Negative
+---| "tag_foil" # Foil Tag: Next base edition shop Joker is free and becomes Foil
+---| "tag_holo" # Holographic Tag: Next base edition shop Joker is free and becomes Holographic
+---| "tag_polychrome" # Polychrome Tag: Next base edition shop Joker is free and becomes Polychrome
+---| "tag_investment" # Investment Tag: After defeating the Boss Blind, gain $25
+---| "tag_voucher" # Voucher Tag: Adds one Voucher to the next shop
+---| "tag_boss" # Boss Tag: Rerolls the Boss Blind
+---| "tag_standard" # Standard Tag: Gives a free Mega Standard Pack
+---| "tag_charm" # Charm Tag: Gives a free Mega Arcana Pack
+---| "tag_meteor" # Meteor Tag: Gives a free Mega Celestial Pack
+---| "tag_buffoon" # Buffoon Tag: Gives a free Mega Buffoon Pack
+---| "tag_handy" # Handy Tag: Gives $1 per played hand this run
+---| "tag_garbage" # Garbage Tag: Gives $1 per unused discard this run
+---| "tag_ethereal" # Ethereal Tag: Gives a free Spectral Pack
+---| "tag_coupon" # Coupon Tag: Initial cards and booster packs in next shop are free
+---| "tag_double" # Double Tag: Gives a copy of the next selected Tag
+---| "tag_juggle" # Juggle Tag: +3 hand size next round
+---| "tag_d_six" # D6 Tag: Rerolls in next shop start at $0
+---| "tag_top_up" # Top-up Tag: Create up to 2 Common Jokers
+---| "tag_speed" # Speed Tag: Gives $5 per skipped Blind this run
+---| "tag_orbital" # Orbital Tag: Upgrade a random poker hand by 3 levels
+---| "tag_economy" # Economy Tag: Doubles your money (Max of $40)
+
 ---@alias Card.Key.PlayingCard
 ---| "H_2" | "H_3" | "H_4" | "H_5" | "H_6" | "H_7" | "H_8" | "H_9" | "H_T" | "H_J" | "H_Q" | "H_K" | "H_A"
 ---| "D_2" | "D_3" | "D_4" | "D_5" | "D_6" | "D_7" | "D_8" | "D_9" | "D_T" | "D_J" | "D_Q" | "D_K" | "D_A"
@@ -377,6 +403,7 @@
 ---| Card.Key.Voucher
 ---| Card.Key.PlayingCard
 ---| Card.Key.Pack
+---| Card.Key.Tag
 
 ---@alias Card.Modifier.Seal
 ---| "RED" # Retrigger this card 1 time
