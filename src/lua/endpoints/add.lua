@@ -501,11 +501,14 @@ return {
         -- Check state stability
         local state_stable = G.STATE_COMPLETE == true and not G.CONTROLLER.locked
 
-        -- Check valid state (still in one of the allowed states)
+        -- Check valid state (still in one of the allowed states);
+        -- pack-opening tags (e.g. tag_charm) open their booster immediately,
+        -- so tags may also complete in the pack-open state
         local valid_state = (
           G.STATE == G.STATES.SHOP
           or G.STATE == G.STATES.SELECTING_HAND
           or G.STATE == G.STATES.ROUND_EVAL
+          or (card_type == "tag" and G.STATE == G.STATES.SMODS_BOOSTER_OPENED)
         )
 
         -- All conditions must be met

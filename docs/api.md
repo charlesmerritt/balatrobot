@@ -1288,7 +1288,7 @@ Tags earned by skipping blinds (or granted directly via the `add` method). Keys 
 
 !!! note "Immediate tags"
 
-    Tags whose effect is immediate (e.g., `tag_handy`, `tag_garbage`, `tag_speed`, `tag_economy`, `tag_top_up`, `tag_orbital`, `tag_boss`) trigger as soon as they are acquired and will not appear in the `tags` array of the returned game state.
+    Tags whose effect is immediate (e.g., `tag_handy`, `tag_garbage`, `tag_speed`, `tag_economy`, `tag_top_up`, `tag_orbital`, `tag_boss`) trigger as soon as they are acquired and will not appear in the `tags` array of the returned game state. Pack tags (`tag_standard`, `tag_charm`, `tag_meteor`, `tag_buffoon`, `tag_ethereal`) open their booster pack immediately: the returned game state will be in the `SMODS_BOOSTER_OPENED` state with the `pack` area populated, and the pack can be resolved with the [`pack`](#pack) method.
 
 #### Playing Cards
 
