@@ -5,7 +5,7 @@
 -- ==========================================================================
 
 ---@class Request.Endpoint.Add.Params
----@field key Card.Key The card key to add (j_* for jokers, c_* for consumables, v_* for vouchers, SUIT_RANK for playing cards)
+---@field key Card.Key The card key to add (j_* for jokers, c_* for consumables, v_* for vouchers, tag_* for tags, SUIT_RANK for playing cards)
 ---@field seal Card.Modifier.Seal? The card seal to apply (only for playing cards)
 ---@field edition Card.Modifier.Edition? The card edition to apply (jokers, playing cards and NEGATIVE consumables)
 ---@field enhancement Card.Modifier.Enhancement? The card enhancement to apply (playing cards)
@@ -74,6 +74,10 @@ local ENHANCEMENT_MAP = {
 ---@param key string The card key
 ---@return string|nil card_type The detected card type or nil if invalid
 local function detect_card_type(key)
+  if key:sub(1, 4) == "tag_" then
+    return "tag"
+  end
+
   local prefix = key:sub(1, 2)
 
   if prefix == "j_" then
@@ -121,13 +125,13 @@ return {
 
   name = "add",
 
-  description = "Add a new card to the game (joker, consumable, voucher, or playing card)",
+  description = "Add a new card to the game (joker, consumable, voucher, tag, or playing card)",
 
   schema = {
     key = {
       type = "string",
       required = true,
-      description = "Card key (j_* for jokers, c_* for consumables, v_* for vouchers, SUIT_RANK for playing cards like H_A)",
+      description = "Card key (j_* for jokers, c_* for consumables, v_* for vouchers, tag_* for tags, SUIT_RANK for playing cards like H_A)",
     },
     seal = {
       type = "string",
@@ -173,7 +177,16 @@ return {
 
     if not card_type then
       send_response({
-        message = "Invalid card key format. Expected: joker (j_*), consumable (c_*), voucher (v_*), or playing card (SUIT_RANK)",
+        message = "Invalid card key format. Expected: joker (j_*), consumable (c_*), voucher (v_*), tag (tag_*), or playing card (SUIT_RANK)",
+        name = BB_ERROR_NAMES.BAD_REQUEST,
+      })
+      return
+    end
+
+    -- Special validation for tags - validate tag key exists
+    if card_type == "tag" and not (G.P_TAGS and G.P_TAGS[args.key]) then
+      send_response({
+        message = "Tag key not found: " .. args.key,
         name = BB_ERROR_NAMES.BAD_REQUEST,
       })
       return
@@ -262,7 +275,7 @@ return {
     end
 
     -- Validate edition parameter is only for jokers, playing cards, or consumables
-    if args.edition and (card_type == "voucher" or card_type == "pack") then
+    if args.edition and (card_type == "voucher" or card_type == "pack" or card_type == "tag") then
       send_response({
         message = "Edition cannot be applied to " .. card_type .. "s",
         name = BB_ERROR_NAMES.BAD_REQUEST,
@@ -426,7 +439,12 @@ return {
     -- Call SMODS function with error handling
     local success, result
 
-    if card_type == "pack" then
+    if card_type == "tag" then
+      -- Tags use the game's add_tag function (same as skipping a blind)
+      success, result = pcall(function()
+        return add_tag(Tag(args.key))
+      end)
+    elseif card_type == "pack" then
       -- Packs use dedicated SMODS function
       success, result = pcall(SMODS.add_booster_to_shop, args.key)
     else
@@ -457,7 +475,12 @@ return {
         -- Verify card was added based on card type
         local added = false
 
-        if card_type == "joker" then
+        if card_type == "tag" then
+          -- add_tag appends synchronously; immediate tags (e.g. money tags)
+          -- may already have triggered and been consumed, so only wait for
+          -- the game to settle
+          added = true
+        elseif card_type == "joker" then
           added = G.jokers and G.jokers.config and G.jokers.config.card_count == initial_joker_count + 1
         elseif card_type == "consumable" then
           added = G.consumeables
@@ -478,11 +501,14 @@ return {
         -- Check state stability
         local state_stable = G.STATE_COMPLETE == true and not G.CONTROLLER.locked
 
-        -- Check valid state (still in one of the allowed states)
+        -- Check valid state (still in one of the allowed states);
+        -- pack-opening tags (e.g. tag_charm) open their booster immediately,
+        -- so tags may also complete in the pack-open state
         local valid_state = (
           G.STATE == G.STATES.SHOP
           or G.STATE == G.STATES.SELECTING_HAND
           or G.STATE == G.STATES.ROUND_EVAL
+          or (card_type == "tag" and G.STATE == G.STATES.SMODS_BOOSTER_OPENED)
         )
 
         -- All conditions must be met

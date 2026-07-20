@@ -20,6 +20,7 @@
 ---@field hands table<string, Hand>? Poker hands information
 ---@field round Round? Current round state
 ---@field blinds table<"small"|"big"|"boss", Blind>? Blind information
+---@field tags Tag[]? Tags owned by the player, in acquisition order (earned by skipping blinds)
 ---@field jokers Area? Jokers area
 ---@field consumables Area? Consumables area
 ---@field hand Area? Hand area (available during playing phase)
@@ -55,6 +56,11 @@
 ---@field score integer Score requirement to beat this blind
 ---@field tag_name string? Name of the tag associated with this blind (Small/Big only)
 ---@field tag_effect string? Description of the tag's effect (Small/Big only)
+
+---@class Tag
+---@field key Card.Key.Tag Tag key (e.g., "tag_double")
+---@field name string Display name of the tag (e.g., "Double Tag")
+---@field effect string Description of the tag's effect
 
 ---@class Area
 ---@field count integer Current number of cards in this area

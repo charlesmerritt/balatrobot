@@ -590,19 +590,19 @@ curl -X POST http://127.0.0.1:12346 \
 
 ### `add`
 
-Add a card to the game (debug/testing). Supports jokers, consumables, vouchers, packs, and playing cards.
+Add a card to the game (debug/testing). Supports jokers, consumables, vouchers, packs, tags, and playing cards.
 
 **Parameters:**
 
-| Name          | Type    | Required | Description                                                                    |
-| ------------- | ------- | -------- | ------------------------------------------------------------------------------ |
-| `key`         | string  | Yes      | [Card key](#card-keys) (e.g., `j_joker`, `c_fool`, `p_arcana_normal_1`, `H_A`) |
-| `seal`        | string  | No       | [Seal](#card-modifier-seal) type (playing cards only)                          |
-| `edition`     | string  | No       | [Edition](#card-modifier-edition) type (not vouchers or packs)                 |
-| `enhancement` | string  | No       | [Enhancement](#card-modifier-enhancement) type (playing cards only)            |
-| `eternal`     | boolean | No       | Cannot be sold/destroyed (jokers only)                                         |
-| `perishable`  | integer | No       | Rounds until perish (jokers only)                                              |
-| `rental`      | boolean | No       | Costs $1/round (jokers only)                                                   |
+| Name          | Type    | Required | Description                                                                                  |
+| ------------- | ------- | -------- | -------------------------------------------------------------------------------------------- |
+| `key`         | string  | Yes      | [Card key](#card-keys) (e.g., `j_joker`, `c_fool`, `p_arcana_normal_1`, `tag_double`, `H_A`) |
+| `seal`        | string  | No       | [Seal](#card-modifier-seal) type (playing cards only)                                        |
+| `edition`     | string  | No       | [Edition](#card-modifier-edition) type (not vouchers, packs, or tags)                        |
+| `enhancement` | string  | No       | [Enhancement](#card-modifier-enhancement) type (playing cards only)                          |
+| `eternal`     | boolean | No       | Cannot be sold/destroyed (jokers only)                                                       |
+| `perishable`  | integer | No       | Rounds until perish (jokers only)                                                            |
+| `rental`      | boolean | No       | Costs $1/round (jokers only)                                                                 |
 
 **Returns:** [GameState](#gamestate-schema)
 
@@ -622,6 +622,11 @@ curl -X POST http://127.0.0.1:12346 \
 curl -X POST http://127.0.0.1:12346 \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc": "2.0", "method": "add", "params": {"key": "p_arcana_normal_1"}, "id": 1}'
+
+# Add a Double Tag (same effect as earning it by skipping a blind)
+curl -X POST http://127.0.0.1:12346 \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc": "2.0", "method": "add", "params": {"key": "tag_double"}, "id": 1}'
 ```
 
 ---
@@ -701,6 +706,7 @@ The complete game state returned by most methods.
   "hands": { ... },
   "round": { ... },
   "blinds": { ... },
+  "tags": [ ... ],
   "jokers": { ... },
   "consumables": { ... },
   "cards": { ... },
@@ -782,6 +788,18 @@ Represents a card area (hand, jokers, consumables, shop, etc.).
   "score": 300,
   "tag_name": "Uncommon Tag",
   "tag_effect": "Shop has a free Uncommon Joker"
+}
+```
+
+### Tag
+
+A tag owned by the player (earned by skipping blinds). The `tags` array lists owned tags in acquisition order.
+
+```json
+{
+  "key": "tag_double",
+  "name": "Double Tag",
+  "effect": "Gives a copy of the next selected Tag"
 }
 ```
 
@@ -1236,6 +1254,41 @@ Booster packs that can be purchased in the shop. When opened, you select cards t
 | `p_buffoon_normal_2`   | Buffoon Pack: Choose 1 of 2 Joker Cards                                       |
 | `p_buffoon_jumbo_1`    | Jumbo Buffoon Pack: Choose 1 of 4 Joker Cards                                 |
 | `p_buffoon_mega_1`     | Mega Buffoon Pack: Choose up to 2 of 4 Joker Cards                            |
+
+#### Tags
+
+Tags earned by skipping blinds (or granted directly via the `add` method). Keys use prefix `tag_` followed by the tag name (e.g., `tag_double`). 24 tags total.
+
+| Key              | Effect                                                                        |
+| ---------------- | ----------------------------------------------------------------------------- |
+| `tag_uncommon`   | Uncommon Tag: Shop has a free Uncommon Joker                                  |
+| `tag_rare`       | Rare Tag: Shop has a free Rare Joker                                          |
+| `tag_negative`   | Negative Tag: Next base edition shop Joker is free and becomes Negative       |
+| `tag_foil`       | Foil Tag: Next base edition shop Joker is free and becomes Foil               |
+| `tag_holo`       | Holographic Tag: Next base edition shop Joker is free and becomes Holographic |
+| `tag_polychrome` | Polychrome Tag: Next base edition shop Joker is free and becomes Polychrome   |
+| `tag_investment` | Investment Tag: After defeating the Boss Blind, gain $25                      |
+| `tag_voucher`    | Voucher Tag: Adds one Voucher to the next shop                                |
+| `tag_boss`       | Boss Tag: Rerolls the Boss Blind                                              |
+| `tag_standard`   | Standard Tag: Gives a free Mega Standard Pack                                 |
+| `tag_charm`      | Charm Tag: Gives a free Mega Arcana Pack                                      |
+| `tag_meteor`     | Meteor Tag: Gives a free Mega Celestial Pack                                  |
+| `tag_buffoon`    | Buffoon Tag: Gives a free Mega Buffoon Pack                                   |
+| `tag_handy`      | Handy Tag: Gives $1 per played hand this run                                  |
+| `tag_garbage`    | Garbage Tag: Gives $1 per unused discard this run                             |
+| `tag_ethereal`   | Ethereal Tag: Gives a free Spectral Pack                                      |
+| `tag_coupon`     | Coupon Tag: Initial cards and booster packs in next shop are free             |
+| `tag_double`     | Double Tag: Gives a copy of the next selected Tag                             |
+| `tag_juggle`     | Juggle Tag: +3 hand size next round                                           |
+| `tag_d_six`      | D6 Tag: Rerolls in next shop start at $0                                      |
+| `tag_top_up`     | Top-up Tag: Create up to 2 Common Jokers                                      |
+| `tag_speed`      | Speed Tag: Gives $5 per skipped Blind this run                                |
+| `tag_orbital`    | Orbital Tag: Upgrade a random poker hand by 3 levels                          |
+| `tag_economy`    | Economy Tag: Doubles your money (Max of $40)                                  |
+
+!!! note "Immediate tags"
+
+    Tags whose effect is immediate (e.g., `tag_handy`, `tag_garbage`, `tag_speed`, `tag_economy`, `tag_top_up`, `tag_orbital`, `tag_boss`) trigger as soon as they are acquired and will not appear in the `tags` array of the returned game state. Pack tags (`tag_standard`, `tag_charm`, `tag_meteor`, `tag_buffoon`, `tag_ethereal`) open their booster pack immediately: the returned game state will be in the `SMODS_BOOSTER_OPENED` state with the `pack` area populated, and the pack can be resolved with the [`pack`](#pack) method.
 
 #### Playing Cards
 

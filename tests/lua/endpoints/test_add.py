@@ -155,7 +155,7 @@ class TestAddEndpointValidation:
         assert_error_response(
             api(client, "add", {"key": "x_unknown"}),
             "BAD_REQUEST",
-            "Invalid card key format. Expected: joker (j_*), consumable (c_*), voucher (v_*), or playing card (SUIT_RANK)",
+            "Invalid card key format. Expected: joker (j_*), consumable (c_*), voucher (v_*), tag (tag_*), or playing card (SUIT_RANK)",
         )
 
     def test_invalid_key_known_format(self, client: httpx.Client) -> None:
@@ -226,6 +226,70 @@ class TestAddEndpointStateRequirements:
             api(client, "add", {"key": "p_arcana_normal_1"}),
             "INVALID_STATE",
             "Packs can only be added in SHOP state",
+        )
+
+
+class TestAddEndpointTag:
+    """Test tag-specific functionality for add endpoint."""
+
+    def test_add_tag(self, client: httpx.Client) -> None:
+        """Test adding a persistent tag with valid key."""
+        gamestate = load_fixture(
+            client,
+            "add",
+            "state-SELECTING_HAND--jokers.count-0--consumables.count-0--hand.count-8",
+        )
+        assert gamestate["state"] == "SELECTING_HAND"
+        assert gamestate["tags"] == []
+        response = api(client, "add", {"key": "tag_double"})
+        after = assert_gamestate_response(response)
+        assert after["tags"] == [
+            {
+                "key": "tag_double",
+                "name": "Double Tag",
+                "effect": "Gives a copy of the next selected Tag",
+            }
+        ]
+
+    def test_add_multiple_tags_preserves_order(self, client: httpx.Client) -> None:
+        """Test that multiple added tags appear in acquisition order."""
+        gamestate = load_fixture(
+            client,
+            "add",
+            "state-SELECTING_HAND--jokers.count-0--consumables.count-0--hand.count-8",
+        )
+        assert gamestate["state"] == "SELECTING_HAND"
+        api(client, "add", {"key": "tag_double"})
+        response = api(client, "add", {"key": "tag_voucher"})
+        after = assert_gamestate_response(response)
+        assert [tag["key"] for tag in after["tags"]] == ["tag_double", "tag_voucher"]
+
+    def test_add_tag_invalid_key(self, client: httpx.Client) -> None:
+        """Test that add fails when tag key doesn't exist in G.P_TAGS."""
+        gamestate = load_fixture(
+            client,
+            "add",
+            "state-SELECTING_HAND--jokers.count-0--consumables.count-0--hand.count-8",
+        )
+        assert gamestate["state"] == "SELECTING_HAND"
+        assert_error_response(
+            api(client, "add", {"key": "tag_nonexistent_99"}),
+            "BAD_REQUEST",
+            "Tag key not found: tag_nonexistent_99",
+        )
+
+    def test_add_tag_with_edition(self, client: httpx.Client) -> None:
+        """Test that add fails when edition is applied to a tag."""
+        gamestate = load_fixture(
+            client,
+            "add",
+            "state-SELECTING_HAND--jokers.count-0--consumables.count-0--hand.count-8",
+        )
+        assert gamestate["state"] == "SELECTING_HAND"
+        assert_error_response(
+            api(client, "add", {"key": "tag_double", "edition": "FOIL"}),
+            "BAD_REQUEST",
+            "Edition cannot be applied to tags",
         )
 
 
